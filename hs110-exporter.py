@@ -6,7 +6,7 @@ import socket
 import argparse
 import json
 
-version = 0.51
+version = 0.55
 
 # Check if IP is valid
 def validIP(ip):
@@ -56,9 +56,9 @@ received_data = {}
 # Create a metric to track time spent and requests made.
 # Gaugage: it goes up and down, snapshot of state
 
-REQUEST_POWER   = Gauge('hs100_power_watt', 'HS100 Watt measure')
-REQUEST_CURRENT = Gauge('hs100_current', 'HS100 Current measure')
-REQUEST_VOLTAGE = Gauge('hs100_voltage', 'HS100 Voltage measure')
+REQUEST_POWER   = Gauge('hs110_power_watt', 'HS110 Watt measure')
+REQUEST_CURRENT = Gauge('hs110_current', 'HS110 Current measure')
+REQUEST_VOLTAGE = Gauge('hs110_voltage', 'HS110 Voltage measure')
 
 
 REQUEST_POWER.set_function(lambda: get_power() )

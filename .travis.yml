@@ -1,0 +1,21 @@
+sudo: required
+services:
+- docker
+language: bash
+script:
+# prepare qemu
+- docker run --rm --privileged multiarch/qemu-user-static:register --reset
+# build image
+- docker build -t -f Dockerfile.arm sdelrio/hs110-exporter-arm  .
+# test image
+- docker run --rm -ti --entrypoint python sdelrio/hs110-exporter-arm --version
+# push image
+- >
+  if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+    docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+    TAG=$(grep "ENV VERSION" Dockerfile.arm | awk 'NF>1{print $NF}')
+    docker tag sdelrio/hs110-exporter-arm sdelrio/hs110-exporter-arm:$TAG
+    docker push sdelrio/hs110-exporter-arm:$TAG
+    docker push sdelrio/hs110-exporter-arm
+  fi
+

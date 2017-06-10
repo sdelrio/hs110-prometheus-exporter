@@ -7,6 +7,7 @@ RUN pip install prometheus_client
 ENV LISTENPORT 8110
 ENV HS110IP 192.168.1.53
 ENV FREQUENCY 1
+ENV VERSION 0.50
 
 ADD hs110-exporter.py .
 ADD entrypoint.sh .

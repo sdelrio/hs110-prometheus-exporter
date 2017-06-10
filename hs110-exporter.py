@@ -6,7 +6,7 @@ import socket
 import argparse
 import json
 
-version = 0.5
+version = 0.51
 
 # Check if IP is valid
 def validIP(ip):

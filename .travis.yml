@@ -6,7 +6,7 @@ script:
 # prepare qemu
 - docker run --rm --privileged multiarch/qemu-user-static:register --reset
 # build image
-- docker build -t -f Dockerfile.arm sdelrio/hs110-exporter-arm  .
+- docker build -t sdelrio/hs110-exporter-arm -f Dockerfile.arm .
 # test image
 - docker run --rm -ti --entrypoint python sdelrio/hs110-exporter-arm --version
 # push image

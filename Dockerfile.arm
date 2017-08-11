@@ -2,7 +2,8 @@ FROM resin/raspberry-pi-alpine-python:2.7-slim
 
 WORKDIR /usr/local/bin
 
-RUN pip install prometheus_client
+COPY requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt && rm -f /tmp/requirements.txt
 
 ENV LISTENPORT 8110
 ENV HS110IP 192.168.1.53

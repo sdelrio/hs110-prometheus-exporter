@@ -37,6 +37,8 @@ jobs:
       script:
       # test x86 image
       - docker run --rm -e "SHOWHELP=true" -ti sdelrio/hs110-exporter
+      # prepare qemu for arm build
+      - docker run --rm --privileged multiarch/qemu-user-static:register --reset
       # test arm image
       - docker run --rm -e "SHOWHELP=true" -ti sdelrio/hs110-exporter-arm
 

@@ -49,7 +49,7 @@ listen_port = args.port
 sleep_time = args.frequency
 port = 9999
 cmd = '{"emeter":{"get_realtime":{}}}'
-received_data = {}
+received_data = {"emeter":{"get_realtime":{"current":0.0,"voltage":0.0,"power":0.0,"total":0.0,"err_code":0}}}
 
 # Send command and receive reply
 
@@ -97,14 +97,17 @@ if __name__ == '__main__':
     # Main loop
     while True:
         sock_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock_tcp.connect((ip, port))
-        sock_tcp.send(encrypt(cmd))
-        data = sock_tcp.recv(2048)
-        sock_tcp.close()
-        # Sample return value received:
-        # {"emeter":{"get_realtime":{"current":1.543330,"voltage":235.627293,"power":348.994080,"total":9.737000,"err_code":0}}}
-        received_data = json.loads(decrypt(data[4:]))
-        print "IP: " + ip + ":" + str(port) + " Received power: " + str(received_data["emeter"]["get_realtime"]["power"])
+        try:
+            sock_tcp.connect((ip, port))
+            sock_tcp.send(encrypt(cmd))
+            data = sock_tcp.recv(2048)
+            sock_tcp.close()
+            # Sample return value received:
+            # {"emeter":{"get_realtime":{"current":1.543330,"voltage":235.627293,"power":348.994080,"total":9.737000,"err_code":0}}}
+            received_data = json.loads(decrypt(data[4:]))
+            print "IP: " + ip + ":" + str(port) + " Received power: " + str(received_data["emeter"]["get_realtime"]["power"])
+        except socket.error:
+            print "Could not connect to the host "+ ip + ":" + str(port)
 
         time.sleep(sleep_time)
 

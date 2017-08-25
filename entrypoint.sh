@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [ "$SHOWHELP" == "true" ]; then
-   python /usr/local/bin/hs110-exporter.py -h || exit 1
-   exit 0
+   /usr/local/bin/hs110-exporter.py -h
+   exit $?
 fi
 
 if [ -z "$HS110IP" ]; then

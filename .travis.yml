@@ -1,21 +1,42 @@
 sudo: required
 services:
 - docker
-language: bash
-script:
-# prepare qemu
-- docker run --rm --privileged multiarch/qemu-user-static:register --reset
-# build image
-- docker build -t sdelrio/hs110-exporter-arm -f Dockerfile.arm .
-# test image
-- docker run --rm -ti --entrypoint python sdelrio/hs110-exporter-arm --version
-# push image
-- >
-  if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-    docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
-    TAG=$(grep "ENV VERSION" Dockerfile.arm | awk 'NF>1{print $NF}')
-    docker tag sdelrio/hs110-exporter-arm sdelrio/hs110-exporter-arm:$TAG
-    docker push sdelrio/hs110-exporter-arm:$TAG
-    docker push sdelrio/hs110-exporter-arm
-  fi
+before_install:
+    - sudo apt-get update
+    - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+    - docker --version # for verification
+language: generic
+jobs:
+  include:
+    - stage: build docker images
+      env:
+        - TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
+        - BASE_X86=jfloff/alpine-python
+        - BASE_ARM=resin/raspberry-pi-alpine-python
+      script:
+      - echo $TAG
+      # x86 build
+      - docker build --build-arg BASE_IMAGE=$BASE_X86 -t sdelrio/hs110-exporter -f Dockerfile .
+      # prepare qemu for arm build
+      - docker run --rm --privileged multiarch/qemu-user-static:register --reset
+      # build arm image
+      - docker build --build-arg BASE_IMAGE=$BASE_ARM -t sdelrio/hs110-exporter-arm -f Dockerfile .
+      - >
+        if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+          docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+          TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
+          docker tag sdelrio/hs110-exporter-arm sdelrio/hs110-exporter:$TAG
+          docker push sdelrio/hs110-exporter-arm:$TAG
+          docker push sdelrio/hs110-exporter-arm
+          docker tag sdelrio/hs110-exporter-arm sdelrio/hs110-exporter-arm:$TAG
+          docker push sdelrio/hs110-exporter-arm:$TAG
+          docker push sdelrio/hs110-exporter-arm
+        fi
+
+    - stage: test
+      script:
+      # test x86 image
+      - docker run --rm -ti --entrypoint python sdelrio/hs110-exporter -h
+      # test arm image
+      - docker run --rm -ti --entrypoint python sdelrio/hs110-exporter-arm -h
 

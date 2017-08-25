@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ "$SHOWHELP" == "true" ]; then
+   python /usr/local/bin/hs110-exporter.py -h || exit 1
+   exit 0
+fi
+
 if [ -z "$HS110IP" ]; then
     echo "Enviroment var 'HS110IP' is required"
     exit -1

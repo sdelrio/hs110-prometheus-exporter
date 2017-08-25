@@ -36,7 +36,7 @@ jobs:
     - stage: test
       script:
       # test x86 image
-      - docker run --rm -ti --entrypoint python sdelrio/hs110-exporter -h
+      - docker run --rm -e "SHOWHELP=true" -ti --entrypoint python sdelrio/hs110-exporter
       # test arm image
-      - docker run --rm -ti --entrypoint python sdelrio/hs110-exporter-arm -h
+      - docker run --rm -e "SHOWHELP=true" -ti --entrypoint python sdelrio/hs110-exporter-arm
 

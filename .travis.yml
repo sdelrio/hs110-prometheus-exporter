@@ -25,9 +25,9 @@ jobs:
         if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
           docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
           TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
-          docker tag sdelrio/hs110-exporter-arm sdelrio/hs110-exporter:$TAG
-          docker push sdelrio/hs110-exporter-arm:$TAG
-          docker push sdelrio/hs110-exporter-arm
+          docker tag sdelrio/hs110-exporter sdelrio/hs110-exporter:$TAG
+          docker push sdelrio/hs110-exporter:$TAG
+          docker push sdelrio/hs110-exporter
           docker tag sdelrio/hs110-exporter-arm sdelrio/hs110-exporter-arm:$TAG
           docker push sdelrio/hs110-exporter-arm:$TAG
           docker push sdelrio/hs110-exporter-arm

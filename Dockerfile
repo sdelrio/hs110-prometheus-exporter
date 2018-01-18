@@ -11,7 +11,7 @@ RUN pip install -r /tmp/requirements.txt && rm -f /tmp/requirements.txt
 ENV LISTENPORT 8110
 ENV HS110IP 192.168.1.53
 ENV FREQUENCY 1
-ENV VERSION 0.58
+ENV VERSION 0.59
 
 ADD hs110-exporter.py .
 ADD entrypoint.sh .

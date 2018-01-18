@@ -108,6 +108,9 @@ if __name__ == '__main__':
             print "IP: " + ip + ":" + str(port) + " Received power: " + str(received_data["emeter"]["get_realtime"]["power"])
         except socket.error:
             print "Could not connect to the host "+ ip + ":" + str(port)
+        except ValueError:
+            received_data = {"emeter":{"get_realtime":{"current":0.0,"voltage":0.0,"power":0.0,"total":0.0,"err_code":0}}}
+            print "Could not decrypt data: "+ data
 
         time.sleep(sleep_time)
 

@@ -97,6 +97,8 @@ if __name__ == '__main__':
     # Main loop
     while True:
         sock_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock_tcp.settimeout(2)
+
         try:
             sock_tcp.connect((ip, port))
             sock_tcp.send(encrypt(cmd))

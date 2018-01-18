@@ -110,7 +110,7 @@ if __name__ == '__main__':
             print "Could not connect to the host "+ ip + ":" + str(port)
         except ValueError:
             received_data = {"emeter":{"get_realtime":{"current":0.0,"voltage":0.0,"power":0.0,"total":0.0,"err_code":0}}}
-            print "Could not decrypt data: "+ data
+            print "Could not decrypt data from hs110."
 
         time.sleep(sleep_time)
 

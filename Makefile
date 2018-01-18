@@ -1,5 +1,5 @@
 IMGNAME=sdelrio/hs110-exporter
-VERSION=:$(TAG)
+VERSION = $(shell grep "ENV VERSION" Dockerfile| awk 'NF>1{print $$NF}')
 TESTIP=192.168.1.53
 .PHONY: all build run
 

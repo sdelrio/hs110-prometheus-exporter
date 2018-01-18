@@ -11,7 +11,7 @@ The script will get values from the IP where HS110 is configured and export on p
 ```
 
 - `-h` Help
-- `t` The IP address where the device HS110 is running
+- `-t` The IP address where the device HS110 is running
 - `-f` Seconds to wait on each measure. Default 1 second
 - `-p` port to listen (where prometheus will connect). Default port 8110
 

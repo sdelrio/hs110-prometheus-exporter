@@ -21,3 +21,9 @@ Sample:
 ./hs110-exporter.py -t 192.168.1.53 -f 2 -p 8110
 ```
 
+# Sample screenshot on grafana
+
+You can get the data exported to prometheus to use into grafana like this:
+
+![](img/hs110-grafana.png?raw=true "Grafana Screenshot")
+

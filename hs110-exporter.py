@@ -7,7 +7,7 @@ import socket
 import argparse
 import json
 
-version = 0.58
+version = 0.70
 
 keyname = {
     "h1": { # Hardware version 1.x

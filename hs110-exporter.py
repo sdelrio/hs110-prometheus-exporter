@@ -9,6 +9,22 @@ import json
 
 version = 0.58
 
+keyname = {
+    "h1": { # Hardware version 1.x
+        "current": "current",
+        "voltage": "voltage",
+        "power": "power",
+        "total": "total"
+    },
+    "h2": { # Hardware version 2.x
+        "current": "current_ma",
+        "voltage": "voltage_mv",
+        "power": "power_mw",
+        "total": "total_wh"
+    }
+}
+hardware= "h2"
+
 # Check if IP is valid
 def validIP(ip):
     try:
@@ -50,7 +66,7 @@ listen_port = args.port
 sleep_time = args.frequency
 port = 9999
 cmd = '{"emeter":{"get_realtime":{}}}'
-received_data = {"emeter":{"get_realtime":{"current_ma":0,"voltage_mv":0,"power_mw":0,"total_wh":0,"err_code":0}}}
+received_data = {"emeter":{"get_realtime":{ keyname[hardware]['current']:0, keyname[hardware]['voltage']:0,keyname[hardware]['power']:0,keyname[hardware]['total']:0,"err_code":0}}}
 
 # Send command and receive reply
 
@@ -71,7 +87,7 @@ REQUEST_TOTAL.set_function(lambda: get_total() )
 def get_power():
     """ Get HS110 power """
     try:
-        return  received_data["emeter"]["get_realtime"]["power_mw"]
+        return  received_data["emeter"]["get_realtime"][keyname[hardware]['power']]
     except socket.error:
         quit("Could not connect to host " + ip + ":" + str(port))
         return 0
@@ -79,7 +95,7 @@ def get_power():
 def get_current():
     """ Get HS110 current """
     try:
-        return  received_data["emeter"]["get_realtime"]["current_ma"]
+        return  received_data["emeter"]["get_realtime"][keyname[hardware]['current']]
     except socket.error:
         quit("Could not connect to host " + ip + ":" + str(port))
         return 0
@@ -87,7 +103,7 @@ def get_current():
 def get_voltage():
     """ Get HS110 voltage """
     try:
-        return  received_data["emeter"]["get_realtime"]["voltage_mv"]
+        return  received_data["emeter"]["get_realtime"][keyname[hardware]['voltage']]
     except socket.error:
         quit("Could not connect to host " + ip + ":" + str(port))
         return 0
@@ -95,7 +111,7 @@ def get_voltage():
 def get_total():
     """ Get HS110 total energy usage """
     try:
-        return received_data["emeter"]["get_realtime"]["total_wh"]
+        return received_data["emeter"]["get_realtime"][keyname[hardware]['total']]
     except socket.error:
         quit("Could not connect to host " + ip + ":" + str(port))
         return 0
@@ -116,13 +132,19 @@ if __name__ == '__main__':
             data = sock_tcp.recv(2048)
             sock_tcp.close()
             # Sample return value received:
-            # {"emeter":{"get_realtime":{"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}
+            # HS110 Hardware 1: {"emeter":{"get_realtime":{"voltage":229865,"current":1110,"power":231866,"total":228,"err_code":0}}}
+            # HS110 Hardware 2: {"emeter":{"get_realtime":{"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}
             received_data = json.loads(decrypt(data[4:]))
-            print "IP: " + ip + ":" + str(port) + " Received power: " + str(received_data["emeter"]["get_realtime"]["power_mw"])
+            print received_data
+            if "current" in received_data['emeter']['get_realtime']:
+                hardware = "h1"
+            if "current_ma" in received_data['emeter']['get_realtime']:
+                hardware = "h2"
+            print "IP: " + ip + ":" + str(port) + " Received power: " + str(received_data["emeter"]["get_realtime"][keyname[hardware]['power']])
         except socket.error:
             print "Could not connect to the host "+ ip + ":" + str(port)
         except ValueError:
-            received_data = {"emeter":{"get_realtime":{"voltage_mv":0,"current_ma":0,"power_mw":0,"total_wh":0,"err_code":0}}}
+            received_data = {"emeter":{"get_realtime":{keyname[hardware]['voltage']:0,keyname[hardware]['current']:0,keyname[hardware]['power']:0,keyname[hardware]['total']:0,"err_code":0}}}
             print "Could not decrypt data from hs110."
 
         time.sleep(sleep_time)

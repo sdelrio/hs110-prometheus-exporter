@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from prometheus_client import start_http_server, Gauge
+import struct
 import time
 import socket
 import argparse
@@ -20,7 +21,7 @@ def validIP(ip):
 # XOR Autokey Cipher with starting key = 171
 def encrypt(string):
     key = 171
-    result = "\0\0\0\0"
+    result = struct.pack('>I', len(string))
     for i in string:
         a = key ^ ord(i)
         key = a
@@ -49,7 +50,7 @@ listen_port = args.port
 sleep_time = args.frequency
 port = 9999
 cmd = '{"emeter":{"get_realtime":{}}}'
-received_data = {"emeter":{"get_realtime":{"current":0.0,"voltage":0.0,"power":0.0,"total":0.0,"err_code":0}}}
+received_data = {"emeter":{"get_realtime":{"current_ma":0,"voltage_mv":0,"power_mw":0,"total_wh":0,"err_code":0}}}
 
 # Send command and receive reply
 
@@ -59,16 +60,18 @@ received_data = {"emeter":{"get_realtime":{"current":0.0,"voltage":0.0,"power":0
 REQUEST_POWER   = Gauge('hs110_power_watt', 'HS110 Watt measure')
 REQUEST_CURRENT = Gauge('hs110_current', 'HS110 Current measure')
 REQUEST_VOLTAGE = Gauge('hs110_voltage', 'HS110 Voltage measure')
+REQUEST_TOTAL   = Gauge('hs110_total', 'HS110 Energy measure')
 
 
 REQUEST_POWER.set_function(lambda: get_power() )
 REQUEST_CURRENT.set_function(lambda: get_current() )
 REQUEST_VOLTAGE.set_function(lambda: get_voltage() )
+REQUEST_TOTAL.set_function(lambda: get_total() )
 
 def get_power():
     """ Get HS110 power """
     try:
-        return  received_data["emeter"]["get_realtime"]["power"]
+        return  received_data["emeter"]["get_realtime"]["power_mw"]
     except socket.error:
         quit("Could not connect to host " + ip + ":" + str(port))
         return 0
@@ -76,7 +79,7 @@ def get_power():
 def get_current():
     """ Get HS110 current """
     try:
-        return  received_data["emeter"]["get_realtime"]["current"]
+        return  received_data["emeter"]["get_realtime"]["current_ma"]
     except socket.error:
         quit("Could not connect to host " + ip + ":" + str(port))
         return 0
@@ -84,7 +87,15 @@ def get_current():
 def get_voltage():
     """ Get HS110 voltage """
     try:
-        return  received_data["emeter"]["get_realtime"]["voltage"]
+        return  received_data["emeter"]["get_realtime"]["voltage_mv"]
+    except socket.error:
+        quit("Could not connect to host " + ip + ":" + str(port))
+        return 0
+
+def get_total():
+    """ Get HS110 total energy usage """
+    try:
+        return received_data["emeter"]["get_realtime"]["total_wh"]
     except socket.error:
         quit("Could not connect to host " + ip + ":" + str(port))
         return 0
@@ -105,13 +116,13 @@ if __name__ == '__main__':
             data = sock_tcp.recv(2048)
             sock_tcp.close()
             # Sample return value received:
-            # {"emeter":{"get_realtime":{"current":1.543330,"voltage":235.627293,"power":348.994080,"total":9.737000,"err_code":0}}}
+            # {"emeter":{"get_realtime":{"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}
             received_data = json.loads(decrypt(data[4:]))
-            print "IP: " + ip + ":" + str(port) + " Received power: " + str(received_data["emeter"]["get_realtime"]["power"])
+            print "IP: " + ip + ":" + str(port) + " Received power: " + str(received_data["emeter"]["get_realtime"]["power_mw"])
         except socket.error:
             print "Could not connect to the host "+ ip + ":" + str(port)
         except ValueError:
-            received_data = {"emeter":{"get_realtime":{"current":0.0,"voltage":0.0,"power":0.0,"total":0.0,"err_code":0}}}
+            received_data = {"emeter":{"get_realtime":{"voltage_mv":0,"current_ma":0,"power_mw":0,"total_wh":0,"err_code":0}}}
             print "Could not decrypt data from hs110."
 
         time.sleep(sleep_time)

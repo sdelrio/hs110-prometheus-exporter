@@ -12,7 +12,7 @@ import socket
 import argparse
 import json
 
-version = 0.70
+version = 0.80
 
 keyname = {
     "h1": { # Hardware version 1.x
@@ -47,36 +47,23 @@ def validIP(ip):
 # Encryption and Decryption of TP-Link Smart Home Protocol
 # XOR Autokey Cipher with starting key = 171
 
-def xor_string(string, key):
-    """xor strings with a key """
-    if isinstance(string, str):
-        # Text strings contain single characters
-        return b"".join(chr(ord(a[0]) ^ key ).encode('latin-1') for a in zip(string))
-    if isinstance(string, bytes):
-        return "".join(chr(a ^ key) for a in string)
-    else:
-        print("No string or bytes found to XOR")
-        return ""
-
 def encrypt(string):
-    key = 171
+    key = hs110_key
     result =  b"\0\0\0" + bytes([len(string)])
     for i in bytes(string.encode('latin-1')):
         a = key ^ i
         key = a
         result += bytes([a])
     return result
-#    return b"\0\0\0" + xor_string(string,hs110_key)
 
 def decrypt(string):
-    key = 171
+    key = hs110_key
     result = b""
     for i in bytes(string):
         a = key ^ i
         key = i
         result += bytes([a])
     return result.decode('latin-1')
-#    return xor_string(string,hs110_key)
 
 # Parse commandline arguments
 parser = argparse.ArgumentParser(description="TP-Link Wi-Fi Smart Plug Prometheus exporter v" + str(version))

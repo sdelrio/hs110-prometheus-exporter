@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Python 3 to python 2 compatibilty
+from __future__ import print_function
+from builtins import bytes
 
 from prometheus_client import start_http_server, Gauge
 import struct
@@ -23,7 +28,13 @@ keyname = {
         "total": "total_wh"
     }
 }
-hardware= "h2"
+
+# Default HS110 hardware version
+hardware = "h2"
+
+# Encryption and Decryption of TP-Link Smart Home Protocol
+# XOR Autokey Cipher with starting key = 171
+hs110_key = 171
 
 # Check if IP is valid
 def validIP(ip):
@@ -35,23 +46,37 @@ def validIP(ip):
 
 # Encryption and Decryption of TP-Link Smart Home Protocol
 # XOR Autokey Cipher with starting key = 171
+
+def xor_string(string, key):
+    """xor strings with a key """
+    if isinstance(string, str):
+        # Text strings contain single characters
+        return b"".join(chr(ord(a[0]) ^ key ).encode('latin-1') for a in zip(string))
+    if isinstance(string, bytes):
+        return "".join(chr(a ^ key) for a in string)
+    else:
+        print("No string or bytes found to XOR")
+        return ""
+
 def encrypt(string):
     key = 171
-    result = struct.pack('>I', len(string))
-    for i in string:
-        a = key ^ ord(i)
+    result =  b"\0\0\0" + bytes([len(string)])
+    for i in bytes(string.encode('latin-1')):
+        a = key ^ i
         key = a
-        result += chr(a)
+        result += bytes([a])
     return result
+#    return b"\0\0\0" + xor_string(string,hs110_key)
 
 def decrypt(string):
     key = 171
-    result = ""
-    for i in string:
-        a = key ^ ord(i)
-        key = ord(i)
-        result += chr(a)
-    return result
+    result = b""
+    for i in bytes(string):
+        a = key ^ i
+        key = i
+        result += bytes([a])
+    return result.decode('latin-1')
+#    return xor_string(string,hs110_key)
 
 # Parse commandline arguments
 parser = argparse.ArgumentParser(description="TP-Link Wi-Fi Smart Plug Prometheus exporter v" + str(version))
@@ -135,17 +160,17 @@ if __name__ == '__main__':
             # HS110 Hardware 1: {"emeter":{"get_realtime":{"voltage":229865,"current":1110,"power":231866,"total":228,"err_code":0}}}
             # HS110 Hardware 2: {"emeter":{"get_realtime":{"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}
             received_data = json.loads(decrypt(data[4:]))
-            print received_data
+            print(received_data)
             if "current" in received_data['emeter']['get_realtime']:
                 hardware = "h1"
             if "current_ma" in received_data['emeter']['get_realtime']:
                 hardware = "h2"
-            print "IP: " + ip + ":" + str(port) + " Received power: " + str(received_data["emeter"]["get_realtime"][keyname[hardware]['power']])
+            print("IP: " + ip + ":" + str(port) + " Received power: " + str(received_data["emeter"]["get_realtime"][keyname[hardware]['power']]))
         except socket.error:
-            print "Could not connect to the host "+ ip + ":" + str(port)
+            print("Could not connect to the host "+ ip + ":" + str(port))
         except ValueError:
             received_data = {"emeter":{"get_realtime":{keyname[hardware]['voltage']:0,keyname[hardware]['current']:0,keyname[hardware]['power']:0,keyname[hardware]['total']:0,"err_code":0}}}
-            print "Could not decrypt data from hs110."
+            print("Could not decrypt data from hs110.")
 
         time.sleep(sleep_time)
 

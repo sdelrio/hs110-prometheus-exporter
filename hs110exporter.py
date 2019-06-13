@@ -75,35 +75,15 @@ def decrypt(string):
         result += bytes([a])
     return result.decode('latin-1')
 
-
-def get_power():
-    """ Get HS110 power """
+def get_data(item):
+    """ Get item from HS110 array of values """
+    allowed_items = ['power', 'current', 'voltage', 'total']
+    if type(item) is not str:
+        raise TypeError('get_data parameter must be str type')
+    if item not in allowed_items:
+        raise ValueError('get_data parameter must be one of: [' + ', '.join(allowed_items) + ']')
     try:
-        return  received_data["emeter"]["get_realtime"][keyname[hardware]['power']]
-    except socket.error:
-        quit("Could not connect to host " + ip + ":" + str(port))
-        return 0
-
-def get_current():
-    """ Get HS110 current """
-    try:
-        return  received_data["emeter"]["get_realtime"][keyname[hardware]['current']]
-    except socket.error:
-        quit("Could not connect to host " + ip + ":" + str(port))
-        return 0
-
-def get_voltage():
-    """ Get HS110 voltage """
-    try:
-        return  received_data["emeter"]["get_realtime"][keyname[hardware]['voltage']]
-    except socket.error:
-        quit("Could not connect to host " + ip + ":" + str(port))
-        return 0
-
-def get_total():
-    """ Get HS110 total energy usage """
-    try:
-        return received_data["emeter"]["get_realtime"][keyname[hardware]['total']]
+        return received_data["emeter"]["get_realtime"][keyname[hardware][item]]
     except socket.error:
         quit("Could not connect to host " + ip + ":" + str(port))
         return 0
@@ -123,7 +103,17 @@ if __name__ == '__main__':
     sleep_time = args.frequency
     port = 9999
     cmd = '{"emeter":{"get_realtime":{}}}'
-    received_data = {"emeter":{"get_realtime":{ keyname[hardware]['current']:0, keyname[hardware]['voltage']:0,keyname[hardware]['power']:0,keyname[hardware]['total']:0,"err_code":0}}}
+    received_data = {
+      "emeter": {
+        "get_realtime": {
+          keyname[hardware]['current']: 0,
+          keyname[hardware]['voltage']: 0,
+          keyname[hardware]['power']: 0,
+          keyname[hardware]['total']: 0,
+          "err_code":0
+        }
+      }
+    }
 
     # Send command and receive reply
 
@@ -136,10 +126,10 @@ if __name__ == '__main__':
     REQUEST_TOTAL   = Gauge('hs110_total', 'HS110 Energy measure')
 
 
-    REQUEST_POWER.set_function(lambda: get_power() )
-    REQUEST_CURRENT.set_function(lambda: get_current() )
-    REQUEST_VOLTAGE.set_function(lambda: get_voltage() )
-    REQUEST_TOTAL.set_function(lambda: get_total() )
+    REQUEST_POWER.set_function(lambda: get_data('power'))
+    REQUEST_CURRENT.set_function(lambda: get_data('current'))
+    REQUEST_VOLTAGE.set_function(lambda: get_data('voltage'))
+    REQUEST_TOTAL.set_function(lambda: get_data('total'))
 
     # Start up the server to expose the metrics.
     start_http_server(listen_port)
@@ -159,10 +149,10 @@ if __name__ == '__main__':
             # HS110 Hardware 2: {"emeter":{"get_realtime":{"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}
             received_data = json.loads(decrypt(data))
             print(received_data)
-            if "current" in received_data['emeter']['get_realtime']:
-                hardware = "h1"
             if "current_ma" in received_data['emeter']['get_realtime']:
                 hardware = "h2"
+            else:
+                hardware = "h1"
             print("IP: " + ip + ":" + str(port) + " Received power: " + str(received_data["emeter"]["get_realtime"][keyname[hardware]['power']]))
         except socket.error:
             print("Could not connect to the host "+ ip + ":" + str(port))

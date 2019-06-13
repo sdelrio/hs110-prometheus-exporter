@@ -13,7 +13,7 @@ ENV HS110IP 192.168.1.53
 ENV FREQUENCY 1
 ENV VERSION 0.81
 
-ADD hs110-exporter.py .
+ADD hs110exporter.py .
 ADD entrypoint.sh .
 RUN chmod +x entrypoint.sh
 

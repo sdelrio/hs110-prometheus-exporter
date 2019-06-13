@@ -2,7 +2,7 @@
 import unittest
 import socket
 
-from hs110exporter import validIP, encrypt, decrypt
+from hs110exporter import validIP, encrypt, decrypt, get_data
 
 class TestValidIP(unittest.TestCase):
   def test_ipstring(self):
@@ -15,6 +15,7 @@ class TestValidIP(unittest.TestCase):
     self.assertRaises(TypeError, validIP, 3j)
     self.assertRaises(ValueError, validIP, '192.168.0.1.a')
 
+class TestEncrypt(unittest.TestCase):
   def test_encryptstring(self):
     text_encrypted = b'\x00\x00\x00\x10\xd0\xf0\x98\xfd\x91\xfd\x92\xa8\x88\xff\x90\xe2\x8e\xea\xca\xb7'
     text_decrypted = '{ hello: world }'
@@ -34,6 +35,12 @@ class TestValidIP(unittest.TestCase):
     self.assertRaises(TypeError, decrypt, 3j)
     self.assertRaises(TypeError, decrypt, "Hello world")
     self.assertIsInstance(decrypt(b'\x00\x00\x00\x10'), str)
+
+  def test_received_data(self):
+    self.assertRaises(TypeError, get_data, 100)
+    self.assertRaises(TypeError, get_data, 100.1)
+    self.assertRaises(TypeError, get_data, 3j)
+    self.assertRaises(ValueError, get_data, "nonexist")
 
 if __name__ == '__main__':
     unittest.main()

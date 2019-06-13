@@ -12,7 +12,7 @@ import socket
 import argparse
 import json
 
-version = 0.9
+version = 0.91
 
 def validIP(ip):
     """ Check type format and valid IP for input parameter """
@@ -148,18 +148,6 @@ if __name__ == '__main__':
     listen_port = args.port
     sleep_time = args.frequency
     port = 9999
-    cmd = '{"emeter":{"get_realtime":{}}}'
-    received_data = {
-      "emeter": {
-        "get_realtime": {
-          keyname[hardware]['current']: 0,
-          keyname[hardware]['voltage']: 0,
-          keyname[hardware]['power']: 0,
-          keyname[hardware]['total']: 0,
-          "err_code":0
-        }
-      }
-    }
     # Init object
     hs110 = HS110data()
 

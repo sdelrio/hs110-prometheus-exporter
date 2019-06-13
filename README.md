@@ -1,4 +1,4 @@
-![https://travis-ci.org/sdelrio/hs110-prometheus-exporter](https://travis-ci.org/sdelrio/hs110-prometheus-exporter.svg?branch=master)
+[![Build Status](https://travis-ci.org/sdelrio/hs110-prometheus-exporter.svg?branch=master)](https://travis-ci.org/sdelrio/hs110-prometheus-exporter)
 
 # TP-Link HS110 prometheus exporter
 

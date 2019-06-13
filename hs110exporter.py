@@ -39,7 +39,10 @@ hs110_key = 171
 # Check if IP is valid
 def validIP(ip):
     if type(ip) not in [str]:
-        raise TypeError("The IP parmeter must be a string")
+        raise TypeError("The IP parameter must be a string")
+
+    ip = ip.strip()  # Remove trailing spaces
+
     try:
         socket.inet_pton(socket.AF_INET, ip)
     except socket.error:
@@ -50,6 +53,8 @@ def validIP(ip):
 # XOR Autokey Cipher with starting key = 171
 
 def encrypt(string):
+    if type(string) not in [str]:
+        raise TypeError("The encrypt parameter must be a string")
     key = hs110_key
     result =  b"\0\0\0" + bytes([len(string)])
     for i in bytes(string.encode('latin-1')):
@@ -59,6 +64,9 @@ def encrypt(string):
     return result
 
 def decrypt(string):
+    if type(string) not in [bytes]:
+        raise TypeError("The decrypt parameter must be bytes")
+    string= string[4:]
     key = hs110_key
     result = b""
     for i in bytes(string):
@@ -149,7 +157,7 @@ if __name__ == '__main__':
             # Sample return value received:
             # HS110 Hardware 1: {"emeter":{"get_realtime":{"voltage":229865,"current":1110,"power":231866,"total":228,"err_code":0}}}
             # HS110 Hardware 2: {"emeter":{"get_realtime":{"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}
-            received_data = json.loads(decrypt(data[4:]))
+            received_data = json.loads(decrypt(data))
             print(received_data)
             if "current" in received_data['emeter']['get_realtime']:
                 hardware = "h1"

@@ -16,7 +16,7 @@ jobs:
       script:
       - echo $TAG
       # Unittest
-      - docker run --rm -v $(pwd):/usr/src -ti jfloff/alpine-python bash -c 'cd /usr/src && pip3 install -r requirements.txt &&  python3 -m unittest' 
+      - docker run --rm -v $(pwd):/usr/src -ti jfloff/alpine-python bash -c 'cd /usr/src && pip3 install -r requirements.txt &&  python3 -m unittest -v'
       # x86 build
       - docker build --build-arg BASE_IMAGE=$BASE_X86 -t sdelrio/hs110-exporter -f Dockerfile .
       # prepare qemu for arm build

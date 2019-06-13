@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$SHOWHELP" == "true" ]; then
-   /usr/local/bin/hs110-exporter.py -h
+   /usr/local/bin/hs110exporter.py -h
    exit $?
 fi
 
@@ -18,5 +18,5 @@ if [ -z "$LISTENPORT" ]; then
     LISTENPORT=8110
 fi
 
-python /usr/local/bin/hs110-exporter.py -t $HS110IP -f $FREQUENCY -p $LISTENPORT
+python /usr/local/bin/hs110exporter.py -t $HS110IP -f $FREQUENCY -p $LISTENPORT
 

@@ -12,7 +12,7 @@ import socket
 import argparse
 import json
 
-version = 0.80
+version = 0.81
 
 keyname = {
     "h1": { # Hardware version 1.x
@@ -38,10 +38,12 @@ hs110_key = 171
 
 # Check if IP is valid
 def validIP(ip):
+    if type(ip) not in [str]:
+        raise TypeError("The IP parmeter must be a string")
     try:
         socket.inet_pton(socket.AF_INET, ip)
     except socket.error:
-        parser.error("Invalid IP Address.")
+        raise ValueError("Invalid IP Address.")
     return ip
 
 # Encryption and Decryption of TP-Link Smart Home Protocol
@@ -65,36 +67,6 @@ def decrypt(string):
         result += bytes([a])
     return result.decode('latin-1')
 
-# Parse commandline arguments
-parser = argparse.ArgumentParser(description="TP-Link Wi-Fi Smart Plug Prometheus exporter v" + str(version))
-parser.add_argument("-t", "--target", metavar="<ip>", required=True, help="Target IP Address", type=validIP)
-parser.add_argument("-f", "--frequency", metavar="<seconds>", required=False, help="Interval in seconds between checking measures", default=1, type=int)
-parser.add_argument("-p", "--port", metavar="<port>", required=False, help="Port for listenin", default=8110, type=int)
-args = parser.parse_args()
-
-# Set target IP, port and command to send
-ip = args.target
-listen_port = args.port
-sleep_time = args.frequency
-port = 9999
-cmd = '{"emeter":{"get_realtime":{}}}'
-received_data = {"emeter":{"get_realtime":{ keyname[hardware]['current']:0, keyname[hardware]['voltage']:0,keyname[hardware]['power']:0,keyname[hardware]['total']:0,"err_code":0}}}
-
-# Send command and receive reply
-
-# Create a metric to track time spent and requests made.
-# Gaugage: it goes up and down, snapshot of state
-
-REQUEST_POWER   = Gauge('hs110_power_watt', 'HS110 Watt measure')
-REQUEST_CURRENT = Gauge('hs110_current', 'HS110 Current measure')
-REQUEST_VOLTAGE = Gauge('hs110_voltage', 'HS110 Voltage measure')
-REQUEST_TOTAL   = Gauge('hs110_total', 'HS110 Energy measure')
-
-
-REQUEST_POWER.set_function(lambda: get_power() )
-REQUEST_CURRENT.set_function(lambda: get_current() )
-REQUEST_VOLTAGE.set_function(lambda: get_voltage() )
-REQUEST_TOTAL.set_function(lambda: get_total() )
 
 def get_power():
     """ Get HS110 power """
@@ -130,6 +102,37 @@ def get_total():
 
 # Main entry point
 if __name__ == '__main__':
+    # Parse commandline arguments
+    parser = argparse.ArgumentParser(description="TP-Link Wi-Fi Smart Plug Prometheus exporter v" + str(version))
+    parser.add_argument("-t", "--target", metavar="<ip>", required=True, help="Target IP Address", type=validIP)
+    parser.add_argument("-f", "--frequency", metavar="<seconds>", required=False, help="Interval in seconds between checking measures", default=1, type=int)
+    parser.add_argument("-p", "--port", metavar="<port>", required=False, help="Port for listenin", default=8110, type=int)
+    args = parser.parse_args()
+
+    # Set target IP, port and command to send
+    ip = args.target
+    listen_port = args.port
+    sleep_time = args.frequency
+    port = 9999
+    cmd = '{"emeter":{"get_realtime":{}}}'
+    received_data = {"emeter":{"get_realtime":{ keyname[hardware]['current']:0, keyname[hardware]['voltage']:0,keyname[hardware]['power']:0,keyname[hardware]['total']:0,"err_code":0}}}
+
+    # Send command and receive reply
+
+    # Create a metric to track time spent and requests made.
+    # Gaugage: it goes up and down, snapshot of state
+
+    REQUEST_POWER   = Gauge('hs110_power_watt', 'HS110 Watt measure')
+    REQUEST_CURRENT = Gauge('hs110_current', 'HS110 Current measure')
+    REQUEST_VOLTAGE = Gauge('hs110_voltage', 'HS110 Voltage measure')
+    REQUEST_TOTAL   = Gauge('hs110_total', 'HS110 Energy measure')
+
+
+    REQUEST_POWER.set_function(lambda: get_power() )
+    REQUEST_CURRENT.set_function(lambda: get_current() )
+    REQUEST_VOLTAGE.set_function(lambda: get_voltage() )
+    REQUEST_TOTAL.set_function(lambda: get_total() )
+
     # Start up the server to expose the metrics.
     start_http_server(listen_port)
 

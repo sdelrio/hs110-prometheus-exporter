@@ -12,11 +12,11 @@ import socket
 import argparse
 import json
 
-version = 0.91
+version = 0.92
 
 def validIP(ip):
     """ Check type format and valid IP for input parameter """
-    if type(ip) not in [str]:
+    if type(ip) != str:
         raise TypeError("The IP parameter must be a string")
 
     ip = ip.strip()  # Remove trailing spaces
@@ -54,7 +54,7 @@ class HS110data:
             }
         }
 
-        self.received_data = self.__empty_data()
+        self.__received_data = self.__empty_data()
 
         # Encryption and Decryption of TP-Link Smart Home Protocol
         # XOR Autokey Cipher with starting key = 171
@@ -72,7 +72,7 @@ class HS110data:
         return result
 
     def __decrypt(self, string):
-        if type(string) not in [bytes]:
+        if type(string) != bytes:
             raise TypeError("The decrypt parameter must be bytes")
         string= string[4:]
         key = self.__hs110_key
@@ -84,7 +84,7 @@ class HS110data:
         return result.decode('latin-1')
 
     def __str__(self):
-        return ', '.join(['{key}={value}'.format(key=key, value=self.received_data['emeter']['get_realtime'].get(key)) for key in self.received_data['emeter']['get_realtime']])
+        return ', '.join(['{key}={value}'.format(key=key, value=self.__received_data['emeter']['get_realtime'].get(key)) for key in self.__received_data['emeter']['get_realtime']])
 
     def __empty_data(self):
         return {
@@ -104,13 +104,14 @@ class HS110data:
         if type(data) is not bytes:
             raise ValueError("receive_data parameter must be of type bytes")
         try:
-            self.received_data = json.loads(self.__decrypt(data))
-            if "current_ma" in self.received_data['emeter']['get_realtime']:
-                self.__hardware = 'h2'
-            else:
-                self.__hardware = 'h1'
+            self.__received_data = json.loads(self.__decrypt(data))
         except:
             raise ValueError("json.loads decrypt data")
+
+        if "current_ma" in self.__received_data['emeter']['get_realtime']:
+            self.__hardware = 'h2'
+        else:
+            self.__hardware = 'h1'
 
     def get_cmd(self):
         """ Get encrypted command to get realtime info from HS110 """
@@ -125,14 +126,14 @@ class HS110data:
         if item not in allowed_items:
             raise ValueError('get_data parameter must be one of: [' + ', '.join(allowed_items) + ']')
         try:
-            return self.received_data["emeter"]["get_realtime"][self.__keyname[self.__hardware][item]]
+            return self.__received_data["emeter"]["get_realtime"][self.__keyname[self.__hardware][item]]
         except socket.error:
             quit("Could not connect to host " + ip + ":" + str(port))
             return 0
 
     def reset_data(self):
-        """ Reset self.received_data values to 0 """
-        self.received_data = self.__empty_data()
+        """ Reset self.__received_data values to 0 """
+        self.__received_data = self.__empty_data()
 
 # Main entry point
 if __name__ == '__main__':

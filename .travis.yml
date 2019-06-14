@@ -16,13 +16,19 @@ jobs:
       script:
       - echo $TAG
       # Unittest
+      - echo "------- UNIT TEST --------"
       - docker run --rm -v $(pwd):/usr/src -ti jfloff/alpine-python bash -c 'cd /usr/src && pip3 install -r requirements.txt &&  python3 -m unittest -v'
+      - echo "------- FINISH UNIT TEST --------"
       # x86 build
+      - echo "------- x86 BUILD --------"
       - docker build --build-arg BASE_IMAGE=$BASE_X86 -t sdelrio/hs110-exporter -f Dockerfile .
+      - echo "------- FINISH x86 BUILD --------"
       # prepare qemu for arm build
+      - echo "------- ARM BUILD --------"
       - docker run --rm --privileged multiarch/qemu-user-static:register --reset
       # build arm image
       - docker build --build-arg BASE_IMAGE=$BASE_ARM -t sdelrio/hs110-exporter-arm -f Dockerfile .
+      - echo "------- FINISH ARM BUILD --------"
       - >
         if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
           docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
@@ -35,7 +41,7 @@ jobs:
           docker push sdelrio/hs110-exporter-arm
         fi
 
-    - stage: test
+    - stage: test run container
       script:
       # test x86 image
       - docker run --rm -e "SHOWHELP=true" -ti sdelrio/hs110-exporter

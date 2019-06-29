@@ -12,7 +12,7 @@ import socket
 import argparse
 import json
 
-version = 0.92
+version = 0.93
 
 def validIP(ip):
     """ Check type format and valid IP for input parameter """
@@ -61,6 +61,7 @@ class HS110data:
         self.__hs110_key = 171
 
     def __encrypt(self, string):
+        """ Encrypts string to send to HS110 """
         if type(string) not in [str]:
             raise TypeError("The encrypt parameter must be a string")
         key = self.__hs110_key
@@ -72,6 +73,7 @@ class HS110data:
         return result
 
     def __decrypt(self, string):
+        """ Decrypts bytestring received by HS110 """
         if type(string) != bytes:
             raise TypeError("The decrypt parameter must be bytes")
         string= string[4:]
@@ -84,9 +86,11 @@ class HS110data:
         return result.decode('latin-1')
 
     def __str__(self):
+        """ Prints content of received HS110 data """
         return ', '.join(['{key}={value}'.format(key=key, value=self.__received_data['emeter']['get_realtime'].get(key)) for key in self.__received_data['emeter']['get_realtime']])
 
     def __empty_data(self):
+        """ Clear received data to 0 values """
         return {
             "emeter": {
                 "get_realtime": {
@@ -168,8 +172,9 @@ if __name__ == '__main__':
     REQUEST_VOLTAGE.set_function(lambda: hs110.get_data('voltage'))
     REQUEST_TOTAL.set_function(lambda: hs110.get_data('total'))
 
-    print("Configuration IP: " + ip + ":" + str(port) )
-    print("Initialising with empty data: ",  hs110)
+    print("[info] Configuration IP: " + ip + ":" + str(port) )
+    print("[info] Initialising with empty data:", hs110)
+
     # Start up the server to expose the metrics.
     start_http_server(listen_port)
 
@@ -189,12 +194,12 @@ if __name__ == '__main__':
             # HS110 Hardware 2: {"emeter":{"get_realtime":{"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}
 
             hs110.receive(data)  # Receive and decrypts data
-            print(hs110)
         except socket.error:
-            print("Could not connect to the host "+ ip + ":" + str(port) + " Keeping last values")
+            print("[warning] Could not connect to the host "+ ip + ":" + str(port) + " Keeping last values")
         except ValueError:
             hs110.reset_data()
-            print("Could not decrypt data from hs110. Reseting values.")
+            print("[warning] Could not decrypt data from hs110. Reseting values.")
 
+        print(hs110)
         time.sleep(sleep_time)
 

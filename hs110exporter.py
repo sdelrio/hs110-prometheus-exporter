@@ -29,7 +29,7 @@ def validIP(ip):
 
 class HS110data:
     """ Storage and management for HS110 data """
-    def __init__(self, hardware_version='h2'):
+    def __init__(self, hardware_version='h2', ip='192.168.1.53', port=9999):
         """ Constructor for HS110 data
         hardware_version: defaults to 'h2' can also be 'h1' """
 
@@ -59,6 +59,11 @@ class HS110data:
         # Encryption and Decryption of TP-Link Smart Home Protocol
         # XOR Autokey Cipher with starting key = 171
         self.__hs110_key = 171
+
+        # HS110 address and port
+        self.__ip = ip
+        self.__port = port
+#        print("[debug] HS110 connection: " + self.__ip + ":" + str(self.__port) )
 
     def __encrypt(self, string):
         """ Encrypts string to send to HS110 """
@@ -139,6 +144,31 @@ class HS110data:
         """ Reset self.__received_data values to 0 """
         self.__received_data = self.__empty_data()
 
+    def connect(self):
+        """ Connect to hss110 with get command to receive metrics """
+        self.send(self.get_cmd())
+
+    def send(self,command):
+        """ Send command to hs110 and receive data """
+        sock_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock_tcp.settimeout(2)
+        try:
+            sock_tcp.connect((self.__ip, self.__port))
+            sock_tcp.send(command)
+            data = sock_tcp.recv(2048)
+            sock_tcp.close()
+
+            # Sample return value received:
+            # HS110 Hardware 1: {"emeter":{"get_realtime":{"voltage":229865,"current":1110,"power":231866,"total":228,"err_code":0}}}
+            # HS110 Hardware 2: {"emeter":{"get_realtime":{"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}
+
+            self.receive(data)  # Receive and decrypts data
+        except socket.error:
+            print("[warning] Could not connect to the host "+ self.__ip + ":" + str(self.__port) + " Keeping last values")
+        except ValueError:
+            hs110.reset_data()
+            print("[warning] Could not decrypt data from hs110. Reseting values.")
+
 # Main entry point
 if __name__ == '__main__':
     # Parse commandline arguments
@@ -154,7 +184,7 @@ if __name__ == '__main__':
     sleep_time = args.frequency
     port = 9999
     # Init object
-    hs110 = HS110data()
+    hs110 = HS110data(hardware_version='h2', ip=args.target)
 
     # Send command and receive reply
 
@@ -172,7 +202,7 @@ if __name__ == '__main__':
     REQUEST_VOLTAGE.set_function(lambda: hs110.get_data('voltage'))
     REQUEST_TOTAL.set_function(lambda: hs110.get_data('total'))
 
-    print("[info] Configuration IP: " + ip + ":" + str(port) )
+    print("[info] Exporter listenting on TCP: " + str(listen_port) )
     print("[info] Initialising with empty data:", hs110)
 
     # Start up the server to expose the metrics.
@@ -180,26 +210,6 @@ if __name__ == '__main__':
 
     # Main loop
     while True:
-        sock_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock_tcp.settimeout(2)
-
-        try:
-            sock_tcp.connect((ip, port))
-            sock_tcp.send(hs110.get_cmd())
-            data = sock_tcp.recv(2048)
-            sock_tcp.close()
-
-            # Sample return value received:
-            # HS110 Hardware 1: {"emeter":{"get_realtime":{"voltage":229865,"current":1110,"power":231866,"total":228,"err_code":0}}}
-            # HS110 Hardware 2: {"emeter":{"get_realtime":{"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}
-
-            hs110.receive(data)  # Receive and decrypts data
-        except socket.error:
-            print("[warning] Could not connect to the host "+ ip + ":" + str(port) + " Keeping last values")
-        except ValueError:
-            hs110.reset_data()
-            print("[warning] Could not decrypt data from hs110. Reseting values.")
-
+        hs110.connect()
         print(hs110)
         time.sleep(sleep_time)
-

@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
+
 import unittest
 import socket
+try:
+    from mock import patch  # python 3
+except ImportError:
+    from unittest.mock import patch  # python 3
 
-from hs110exporter import validIP, HS110data
+from hs110exporter import validIP, HS110data, socket
 
 class TestValidIP(unittest.TestCase):
   def test_ipstring(self):
@@ -131,6 +136,53 @@ class TestHS110data(unittest.TestCase):
     hs110 = HS110data()
 
     self.assertEqual(hs110.get_cmd(), cmd_encrypted)
+
+  @patch.object(HS110data,'send')
+#  @patch.object(socket.socket,'settimeout')
+#  @patch.object(socket.socket,'connect')
+#  @patch.object(socket.socket,'recv')
+#  @patch.object(socket.socket,'close')
+#  def test_connect(self, mock_HS110data_send, socket_settimeout, socket_connnect, socket_recv, socket_close):
+  def test_connect(self, mock_HS110data_send):
+    assert HS110data.send is mock_HS110data_send
+    hs110 = HS110data()
+    hs110.send('mycommand')
+    mock_HS110data_send.assert_called_with('mycommand')
+#    @mock.patch('hs110exporter.socket.send')
+#    @mock.patch('hs110exporter.socket.connect')
+
+  @patch.object(socket.socket,'settimeout')
+  @patch.object(socket.socket,'connect')
+  @patch.object(socket.socket,'send')
+  @patch.object(socket.socket,'recv')
+  @patch.object(socket.socket,'close')
+  @patch.object(socket.socket,'__init__')
+  def test_socket(self, mock_init, mock_close, mock_recv, mock_send, mock_connect, mock_settimeout):
+    assert socket.socket.settimeout is mock_settimeout
+    assert socket.socket.connect is mock_connect
+    assert socket.socket.send is mock_send
+    assert socket.socket.recv is mock_recv
+    assert socket.socket.close is mock_close
+    assert socket.socket.__init__ is mock_init
+    mock_init.return_value = None
+
+    test_ip    = ' 192.168.1.100'
+    test_port = 9991
+
+    # Init hs110 object and return data
+    hs110 = HS110data(ip = test_ip, port = test_port)
+    sample_data = hs110._HS110data__encrypt('{"emeter":{"get_realtime":{"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}')
+    sample_data_dict = {'emeter': {'get_realtime': {'voltage_mv': 229865, 'current_ma': 1110, 'power_mw': 231866, 'total_wh': 228, 'err_code': 0}}}
+    mock_recv.return_value = sample_data
+
+    # Make connection and test called metheods
+    hs110.connect()
+    mock_init.assert_called_once()
+    mock_settimeout.assert_called_once_with(2)
+    mock_connect.assert_called_once_with((test_ip, test_port))
+    mock_send.assert_called_once_with(hs110.get_cmd())
+    mock_close.assert_called_once()
+    self.assertEqual(hs110._HS110data__received_data, sample_data_dict)
 
 if __name__ == '__main__':
     unittest.main()

@@ -3,9 +3,9 @@
 import unittest
 import socket
 try:
-    from mock import patch  # python 3
+    from mock import patch, call  # python 3
 except ImportError:
-    from unittest.mock import patch  # python 3
+    from unittest.mock import patch, call  # python 3
 
 from hs110exporter import validIP, HS110data, socket
 
@@ -158,7 +158,8 @@ class TestHS110data(unittest.TestCase):
   @patch.object(socket.socket,'recv')
   @patch.object(socket.socket,'close')
   @patch.object(socket.socket,'__init__')
-  def test_socket(self, mock_init, mock_close, mock_recv, mock_send, mock_connect, mock_settimeout):
+  @patch('builtins.print')
+  def test_socket(self, mock_print, mock_init, mock_close, mock_recv, mock_send, mock_connect, mock_settimeout):
     assert socket.socket.settimeout is mock_settimeout
     assert socket.socket.connect is mock_connect
     assert socket.socket.send is mock_send
@@ -190,9 +191,16 @@ class TestHS110data(unittest.TestCase):
     mock_recv.side_effect = ValueError()
     hs110.send('mycommand')
     self.assertEqual(hs110._HS110data__received_data, hs110._HS110data__empty_data())
+    assert mock_print.mock_calls == [
+      call('[warning] Could not decrypt data from hs110. Reseting values.')
+    ]
 
     mock_connect.side_effect = socket.error()
     hs110.send('mycommand')
+    assert mock_print.mock_calls == [
+      call('[warning] Could not decrypt data from hs110. Reseting values.'),
+      call('[error] Could not connect to the host 192.168.1.100:9991 Keeping last values')
+    ]
 
 if __name__ == '__main__':
     unittest.main()

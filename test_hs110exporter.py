@@ -55,7 +55,7 @@ class TestHS110data(unittest.TestCase):
       self.assertRaises(TypeError, hs110.get_data, 100)
       self.assertRaises(TypeError, hs110.get_data, 100.1)
       self.assertRaises(TypeError, hs110.get_data, 3j)
-      self.assertRaises(ValueError, hs110.get_data, "nonexist")
+      self.assertRaises(KeyError, hs110.get_data, 'nonexist')
 
       self.assertEqual(hs110.get_data('power'), 0)
       self.assertEqual(hs110.get_data('current'), 0)
@@ -137,19 +137,20 @@ class TestHS110data(unittest.TestCase):
 
     self.assertEqual(hs110.get_cmd(), cmd_encrypted)
 
+  def test_get_connection_info(self):
+    test_ip   = '192.168.1.99'
+    test_port = 9998
+    info  =  "HS110 connection: %s:%s" % (test_ip, test_port)
+    hs110 = HS110data(ip = test_ip, port = test_port)
+
+    self.assertEqual(hs110.get_connection_info(), info)
+
   @patch.object(HS110data,'send')
-#  @patch.object(socket.socket,'settimeout')
-#  @patch.object(socket.socket,'connect')
-#  @patch.object(socket.socket,'recv')
-#  @patch.object(socket.socket,'close')
-#  def test_connect(self, mock_HS110data_send, socket_settimeout, socket_connnect, socket_recv, socket_close):
   def test_connect(self, mock_HS110data_send):
     assert HS110data.send is mock_HS110data_send
     hs110 = HS110data()
     hs110.send('mycommand')
     mock_HS110data_send.assert_called_with('mycommand')
-#    @mock.patch('hs110exporter.socket.send')
-#    @mock.patch('hs110exporter.socket.connect')
 
   @patch.object(socket.socket,'settimeout')
   @patch.object(socket.socket,'connect')
@@ -166,7 +167,7 @@ class TestHS110data(unittest.TestCase):
     assert socket.socket.__init__ is mock_init
     mock_init.return_value = None
 
-    test_ip    = ' 192.168.1.100'
+    test_ip   = '192.168.1.100'
     test_port = 9991
 
     # Init hs110 object and return data
@@ -174,6 +175,7 @@ class TestHS110data(unittest.TestCase):
     sample_data = hs110._HS110data__encrypt('{"emeter":{"get_realtime":{"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}')
     sample_data_dict = {'emeter': {'get_realtime': {'voltage_mv': 229865, 'current_ma': 1110, 'power_mw': 231866, 'total_wh': 228, 'err_code': 0}}}
     mock_recv.return_value = sample_data
+
 
     # Make connection and test called metheods
     hs110.connect()
@@ -183,6 +185,14 @@ class TestHS110data(unittest.TestCase):
     mock_send.assert_called_once_with(hs110.get_cmd())
     mock_close.assert_called_once()
     self.assertEqual(hs110._HS110data__received_data, sample_data_dict)
+
+    # Test socket exception from send
+    mock_recv.side_effect = ValueError()
+    hs110.send('mycommand')
+    self.assertEqual(hs110._HS110data__received_data, hs110._HS110data__empty_data())
+
+    mock_connect.side_effect = socket.error()
+    hs110.send('mycommand')
 
 if __name__ == '__main__':
     unittest.main()

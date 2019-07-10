@@ -63,7 +63,6 @@ class HS110data:
         # HS110 address and port
         self.__ip = ip
         self.__port = port
-#        print("[debug] HS110 connection: " + self.__ip + ":" + str(self.__port) )
 
     def __encrypt(self, string):
         """ Encrypts string to send to HS110 """
@@ -129,16 +128,15 @@ class HS110data:
 
     def get_data(self, item):
         """ Get item (power, current, voltage or total) from HS110 array of values """
-        allowed_items = ['power', 'current', 'voltage', 'total']
         if type(item) is not str:
             raise TypeError('get_data parameter must be str type')
-        if item not in allowed_items:
-            raise ValueError('get_data parameter must be one of: [' + ', '.join(allowed_items) + ']')
         try:
             return self.__received_data["emeter"]["get_realtime"][self.__keyname[self.__hardware][item]]
-        except socket.error:
-            quit("Could not connect to host " + ip + ":" + str(port))
-            return 0
+        except KeyError:
+            raise KeyError('get_data parameter must be one of: [' + ', '.join(self.__received_data["emeter"]["get_realtime"].keys()) + ']')
+
+    def get_connection_info(self):
+        return 'HS110 connection: %s:%s' % (self.__ip, str(self.__port))
 
     def reset_data(self):
         """ Reset self.__received_data values to 0 """
@@ -148,7 +146,7 @@ class HS110data:
         """ Connect to hss110 with get command to receive metrics """
         self.send(self.get_cmd())
 
-    def send(self,command):
+    def send(self, command):
         """ Send command to hs110 and receive data """
         sock_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock_tcp.settimeout(2)
@@ -164,9 +162,9 @@ class HS110data:
 
             self.receive(data)  # Receive and decrypts data
         except socket.error:
-            print("[warning] Could not connect to the host "+ self.__ip + ":" + str(self.__port) + " Keeping last values")
+            print("[error] Could not connect to the host "+ self.__ip + ":" + str(self.__port) + " Keeping last values")
         except ValueError:
-            hs110.reset_data()
+            self.reset_data()
             print("[warning] Could not decrypt data from hs110. Reseting values.")
 
 # Main entry point
@@ -178,11 +176,6 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--port", metavar="<port>", required=False, help="Port for listenin", default=8110, type=int)
     args = parser.parse_args()
 
-    # Set target IP, port and command to send
-    ip = args.target
-    listen_port = args.port
-    sleep_time = args.frequency
-    port = 9999
     # Init object
     hs110 = HS110data(hardware_version='h2', ip=args.target)
 
@@ -202,14 +195,14 @@ if __name__ == '__main__':
     REQUEST_VOLTAGE.set_function(lambda: hs110.get_data('voltage'))
     REQUEST_TOTAL.set_function(lambda: hs110.get_data('total'))
 
-    print("[info] Exporter listenting on TCP: " + str(listen_port) )
-    print("[info] Initialising with empty data:", hs110)
+    print('[info] %s' % hs110.get_connection_info())
 
     # Start up the server to expose the metrics.
-    start_http_server(listen_port)
+    start_http_server(args.port)
+    print("[info] Exporter listenting on TCP: " + str(args.port) )
 
     # Main loop
     while True:
         hs110.connect()
-        print(hs110)
-        time.sleep(sleep_time)
+        print('[info] %s' % hs110)
+        time.sleep(args.frequency)

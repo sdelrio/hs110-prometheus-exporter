@@ -64,10 +64,16 @@ jobs:
         fi
 
     - stage: run container
+      if: branch = master
+      env:
+        - BASE=sdelrio/hs110-exporter
       script:
       # test x86 image
       - docker run --rm -e "SHOWHELP=true" -ti sdelrio/hs110-exporter
     - # stage name not required, will continue to use `run container`
+      if: branch = master
+      env:
+        - BASE=sdelrio/hs110-exporter-arm
       script:
       # prepare qemu for arm build
       - docker run --rm --privileged multiarch/qemu-user-static:register --reset

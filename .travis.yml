@@ -2,34 +2,34 @@ sudo: required
 services:
 - docker
 before_install:
-    - sudo apt-get update
-    - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+#    - sudo apt-get update
+#    - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
     - docker --version # for verification
 language: generic
 jobs:
   include:
     - stage: test
       env:
-        - BASE_X86=jfloff/alpine-python
+        - BASE=jfloff/alpine-python
       script:
       # Unittest + code coverage
-      - docker run --rm -v $(pwd):/usr/src -ti $BASE_X86:3.6 bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py36'
+      - docker run --rm -v $(pwd):/usr/src -ti $BASE:3.6 bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py36'
     - # stage name not required, will continue to use `test`
       env:
-        - BASE_X86=jfloff/alpine-python
+        - BASE=jfloff/alpine-python
       script:
       # Unittest + code coverage
-      - docker run --rm -v $(pwd):/usr/src -ti $BASE_X86:3.7 bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py37'
+      - docker run --rm -v $(pwd):/usr/src -ti $BASE:3.7 bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py37'
       
     - stage: build docker images
       env:
+        - BASE=jfloff/alpine-python
         - TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
-        - BASE_X86=jfloff/alpine-python
       script:
       - echo $TAG
       # x86 build
       - echo "------- x86 BUILD --------"
-      - docker build --build-arg BASE_IMAGE=$BASE_X86 -t sdelrio/hs110-exporter -f Dockerfile .
+      - docker build --build-arg BASE_IMAGE=$BASE -t sdelrio/hs110-exporter -f Dockerfile .
       - echo "------- FINISH x86 BUILD --------"
       # prepare qemu for arm build
       - >
@@ -42,15 +42,15 @@ jobs:
         fi
     - # stage name not required, will continue to use `build docker images`
       env:
+        - BASE=resin/raspberry-pi-alpine-python
         - TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
-        - BASE_ARM=resin/raspberry-pi-alpine-python
       script:
       - echo $TAG
       # prepare qemu for arm build
       - echo "------- ARM BUILD --------"
       - docker run --rm --privileged multiarch/qemu-user-static:register --reset
       # build arm image
-      - docker build --build-arg BASE_IMAGE=$BASE_ARM -t sdelrio/hs110-exporter-arm -f Dockerfile .
+      - docker build --build-arg BASE_IMAGE=$BASE -t sdelrio/hs110-exporter-arm -f Dockerfile .
       - echo "------- FINISH ARM BUILD --------"
       - >
         if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then

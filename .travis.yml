@@ -10,12 +10,13 @@ jobs:
   include:
     - stage: test
       env:
-        - TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
         - BASE_X86=jfloff/alpine-python
       script:
       # Unittest + code coverage
       - docker run --rm -v $(pwd):/usr/src -ti $BASE_X86:3.6 bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py36'
     - # stage name not required, will continue to use `test`
+      env:
+        - BASE_X86=jfloff/alpine-python
       script:
       # Unittest + code coverage
       - docker run --rm -v $(pwd):/usr/src -ti $BASE_X86:3.7 bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py37'
@@ -24,7 +25,6 @@ jobs:
       env:
         - TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
         - BASE_X86=jfloff/alpine-python
-        - BASE_ARM=resin/raspberry-pi-alpine-python
       script:
       - echo $TAG
       # x86 build
@@ -41,6 +41,9 @@ jobs:
           docker push sdelrio/hs110-exporter
         fi
     - # stage name not required, will continue to use `build docker images`
+      env:
+        - TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
+        - BASE_ARM=resin/raspberry-pi-alpine-python
       script:
       - echo $TAG
       # prepare qemu for arm build

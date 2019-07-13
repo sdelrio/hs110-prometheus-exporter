@@ -20,7 +20,7 @@ jobs:
       - docker run --rm -v $(pwd):/usr/src -ti jfloff/alpine-python bash -c 'cd /usr/src && pip3 install -r requirements.txt && python3 -m unittest -v'
       - echo "------- FINISH UNIT TEST --------"
       - echo "------- CODE COVERAGE --------"
-      - docker run --rm -v $(pwd):/usr/src -ti jfloff/alpine-python bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox'
+      - docker run --rm -v $(pwd):/usr/src -ti jfloff/alpine-python bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage'
       - echo "------- FINISH CODE COVERAGE --------"
       # x86 build
       - echo "------- x86 BUILD --------"

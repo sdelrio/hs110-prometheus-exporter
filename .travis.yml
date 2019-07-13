@@ -2,33 +2,38 @@ sudo: required
 services:
 - docker
 before_install:
-    - sudo apt-get update
-    - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+#    - sudo apt-get update
+#    - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
     - docker --version # for verification
 language: generic
 jobs:
   include:
+    - stage: test
+      env:
+        - BASE=jfloff/alpine-python
+        - TAG=3.6
+      script:
+      # Unittest + code coverage
+      - docker run --rm -v $(pwd):/usr/src -ti $BASE:$TAG bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py36'
+    - # stage name not required, will continue to use `test`
+      env:
+        - BASE=jfloff/alpine-python
+        - TAG=3.7
+      script:
+      # Unittest + code coverage
+      - docker run --rm -v $(pwd):/usr/src -ti $BASE:$TAG bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py37'
+      
     - stage: build docker images
       env:
+        - BASE=jfloff/alpine-python
         - TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
-        - BASE_X86=jfloff/alpine-python
-        - BASE_ARM=resin/raspberry-pi-alpine-python
       script:
       - echo $TAG
-      # Unittest
-      - echo "------- UNIT TEST --------"
-      - docker run --rm -v $(pwd):/usr/src -ti jfloff/alpine-python bash -c 'cd /usr/src && pip3 install -r requirements.txt &&  python3 -m unittest -v'
-      - echo "------- FINISH UNIT TEST --------"
       # x86 build
       - echo "------- x86 BUILD --------"
-      - docker build --build-arg BASE_IMAGE=$BASE_X86 -t sdelrio/hs110-exporter -f Dockerfile .
+      - docker build --build-arg BASE_IMAGE=$BASE -t sdelrio/hs110-exporter -f Dockerfile .
       - echo "------- FINISH x86 BUILD --------"
       # prepare qemu for arm build
-      - echo "------- ARM BUILD --------"
-      - docker run --rm --privileged multiarch/qemu-user-static:register --reset
-      # build arm image
-      - docker build --build-arg BASE_IMAGE=$BASE_ARM -t sdelrio/hs110-exporter-arm -f Dockerfile .
-      - echo "------- FINISH ARM BUILD --------"
       - >
         if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
           docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
@@ -36,15 +41,40 @@ jobs:
           docker tag sdelrio/hs110-exporter sdelrio/hs110-exporter:$TAG
           docker push sdelrio/hs110-exporter:$TAG
           docker push sdelrio/hs110-exporter
+        fi
+    - # stage name not required, will continue to use `build docker images`
+      env:
+        - BASE=resin/raspberry-pi-alpine-python
+        - TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
+      script:
+      - echo $TAG
+      # prepare qemu for arm build
+      - echo "------- ARM BUILD --------"
+      - docker run --rm --privileged multiarch/qemu-user-static:register --reset
+      # build arm image
+      - docker build --build-arg BASE_IMAGE=$BASE -t sdelrio/hs110-exporter-arm -f Dockerfile .
+      - echo "------- FINISH ARM BUILD --------"
+      - >
+        if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+          docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+          TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
           docker tag sdelrio/hs110-exporter-arm sdelrio/hs110-exporter-arm:$TAG
           docker push sdelrio/hs110-exporter-arm:$TAG
           docker push sdelrio/hs110-exporter-arm
         fi
 
-    - stage: test run container
+    - stage: run container
+      if: branch = master
+      env:
+        - BASE=sdelrio/hs110-exporter
       script:
       # test x86 image
       - docker run --rm -e "SHOWHELP=true" -ti sdelrio/hs110-exporter
+    - # stage name not required, will continue to use `run container`
+      if: branch = master
+      env:
+        - BASE=sdelrio/hs110-exporter-arm
+      script:
       # prepare qemu for arm build
       - docker run --rm --privileged multiarch/qemu-user-static:register --reset
       # test arm image

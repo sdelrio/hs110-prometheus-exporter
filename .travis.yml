@@ -15,6 +15,7 @@ jobs:
       script:
       # Unittest + code coverage
       - docker run --rm -v $(pwd):/usr/src -ti $BASE_X86:3.6 bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py36'
+    - # stage name not required, will continue to use `test`
       script:
       # Unittest + code coverage
       - docker run --rm -v $(pwd):/usr/src -ti $BASE_X86:3.7 bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py37'
@@ -39,6 +40,7 @@ jobs:
           docker push sdelrio/hs110-exporter:$TAG
           docker push sdelrio/hs110-exporter
         fi
+    - # stage name not required, will continue to use `build docker images`
       script:
       - echo $TAG
       # prepare qemu for arm build
@@ -56,10 +58,11 @@ jobs:
           docker push sdelrio/hs110-exporter-arm
         fi
 
-    - stage: test run container
+    - stage: run container
       script:
       # test x86 image
       - docker run --rm -e "SHOWHELP=true" -ti sdelrio/hs110-exporter
+    - # stage name not required, will continue to use `run container`
       script:
       # prepare qemu for arm build
       - docker run --rm --privileged multiarch/qemu-user-static:register --reset

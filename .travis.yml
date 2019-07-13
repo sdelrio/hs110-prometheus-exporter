@@ -8,6 +8,17 @@ before_install:
 language: generic
 jobs:
   include:
+    - stage: test
+      env:
+        - TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
+        - BASE_X86=jfloff/alpine-python
+      script:
+      # Unittest + code coverage
+      - docker run --rm -v $(pwd):/usr/src -ti $BASE_X86:3.6 bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py36'
+      script:
+      # Unittest + code coverage
+      - docker run --rm -v $(pwd):/usr/src -ti $BASE_X86:3.7 bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py37'
+      
     - stage: build docker images
       env:
         - TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
@@ -15,14 +26,21 @@ jobs:
         - BASE_ARM=resin/raspberry-pi-alpine-python
       script:
       - echo $TAG
-      # Unittest + code coverage
-      - echo "------- UNITTEST + CODE COVERAGE --------"
-      - docker run --rm -v $(pwd):/usr/src -ti jfloff/alpine-python bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage'
-      - echo "------- FINISH UNITTEST + CODE COVERAGE --------"
       # x86 build
       - echo "------- x86 BUILD --------"
       - docker build --build-arg BASE_IMAGE=$BASE_X86 -t sdelrio/hs110-exporter -f Dockerfile .
       - echo "------- FINISH x86 BUILD --------"
+      # prepare qemu for arm build
+      - >
+        if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+          docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+          TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
+          docker tag sdelrio/hs110-exporter sdelrio/hs110-exporter:$TAG
+          docker push sdelrio/hs110-exporter:$TAG
+          docker push sdelrio/hs110-exporter
+        fi
+      script:
+      - echo $TAG
       # prepare qemu for arm build
       - echo "------- ARM BUILD --------"
       - docker run --rm --privileged multiarch/qemu-user-static:register --reset
@@ -33,9 +51,6 @@ jobs:
         if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
           docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
           TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
-          docker tag sdelrio/hs110-exporter sdelrio/hs110-exporter:$TAG
-          docker push sdelrio/hs110-exporter:$TAG
-          docker push sdelrio/hs110-exporter
           docker tag sdelrio/hs110-exporter-arm sdelrio/hs110-exporter-arm:$TAG
           docker push sdelrio/hs110-exporter-arm:$TAG
           docker push sdelrio/hs110-exporter-arm
@@ -45,6 +60,7 @@ jobs:
       script:
       # test x86 image
       - docker run --rm -e "SHOWHELP=true" -ti sdelrio/hs110-exporter
+      script:
       # prepare qemu for arm build
       - docker run --rm --privileged multiarch/qemu-user-static:register --reset
       # test arm image

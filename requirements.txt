@@ -3,3 +3,4 @@
 
 # hs110-exporter.py: 3
 prometheus_client >= 0.0.19
+dpcontracts >= 0.5.0

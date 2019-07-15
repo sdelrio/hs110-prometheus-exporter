@@ -5,6 +5,7 @@
 from __future__ import print_function
 from builtins import bytes
 
+from dpcontracts import require, ensure
 from prometheus_client import start_http_server, Gauge
 import struct
 import time
@@ -14,17 +15,20 @@ import json
 
 version = 0.93
 
-def validIP(ip):
+@require("ip must be a string", lambda args: isinstance(args.ip, str))
+@require("ip must not be empty", lambda args: len(args.ip) > 0)
+@ensure("result is part of input", lambda args, result: result in args.ip )
+def validIP(ip: str) -> str:
     """ Check type format and valid IP for input parameter """
-    if type(ip) != str:
-        raise TypeError("The IP parameter must be a string")
+#    if type(ip) != str:
+#        raise TypeError("The IP parameter must be a string")
 
     ip = ip.strip()  # Remove trailing spaces
 
     try:
         socket.inet_pton(socket.AF_INET, ip)
     except socket.error:
-        raise ValueError("Invalid IP Address.")
+        raise ValueError("Invalid IP Address %s" % ip)
     return ip
 
 class HS110data:

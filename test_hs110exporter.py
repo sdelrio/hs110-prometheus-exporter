@@ -7,6 +7,9 @@ try:
 except ImportError:
     from unittest.mock import patch, call  # python 3
 
+from dpcontracts import require, ensure, PreconditionError
+from hypothesis import given, assume
+from hypothesis.strategies import integers, one_of, floats, text, lists, none, permutations, complex_numbers
 from hs110exporter import validIP, HS110data, socket
 
 class TestValidIP(unittest.TestCase):
@@ -14,11 +17,34 @@ class TestValidIP(unittest.TestCase):
     self.assertEqual(validIP('192.168.0.1'), '192.168.0.1')
     self.assertEqual(validIP(' 192.168.0.1 '), '192.168.0.1')
 
+  @given( one_of(
+    integers(1), 
+    floats(1),
+    none(),
+    complex_numbers(1),
+    lists(floats(1))
+  ))
+  def test_ipstring_types(self, fake_ip_type):
+    self.assertRaises(PreconditionError, validIP, fake_ip_type)
+
   def test_ipvalues(self):
-    self.assertRaises(TypeError, validIP, 192)
-    self.assertRaises(TypeError, validIP, 192.168)
-    self.assertRaises(TypeError, validIP, 3j)
     self.assertRaises(ValueError, validIP, '192.168.0.1.a')
+
+  @given(integers(min_value=1, max_value=255),
+    integers(min_value=1, max_value=255),
+    integers(min_value=1, max_value=255),
+    integers(min_value=1, max_value=255)
+  )
+  def test_ipvalues_hypo(self, a, b, c, d):
+    ip_string = "%s.%s.%s.%s" % (str(a), str(b), str(c), str(d))
+    ip_string == validIP(ip_string) 
+
+  @given(integers(min_value=-1000, max_value=1000))
+  def test_ipvalues_hypo_raises(self, a):
+    print(a)
+    if (a < 0 or a > 255):
+      ip_string = "%s.%s.%s.%s" % (str(a), str(0), str(1), str(2))
+      self.assertRaises(ValueError, validIP, ip_string)
 
 class TestHS110data(unittest.TestCase):
   def test_encryptstring(self):
@@ -28,7 +54,6 @@ class TestHS110data(unittest.TestCase):
 
     self.assertEqual(hs110._HS110data__encrypt(text_decrypted), text_encrypted)
     self.assertEqual(hs110._HS110data__decrypt(text_encrypted), text_decrypted)
-
 
   def test_encryptvalues(self):
     hs110 = HS110data()

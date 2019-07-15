@@ -2,10 +2,8 @@
 
 import unittest
 import socket
-try:
-    from mock import patch, call  # python 3
-except ImportError:
-    from unittest.mock import patch, call  # python 3
+
+from mock import patch, call  # python 3
 
 from dpcontracts import require, ensure, PreconditionError
 from hypothesis import given, assume

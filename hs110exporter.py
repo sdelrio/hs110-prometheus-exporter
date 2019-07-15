@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Python 3 to python 2 compatibilty
-from __future__ import print_function
-from builtins import bytes
-
 from dpcontracts import require, ensure
 from prometheus_client import start_http_server, Gauge
 import struct
@@ -13,7 +9,7 @@ import socket
 import argparse
 import json
 
-version = 0.93
+version = 0.94
 
 @require("ip must be a string", lambda args: isinstance(args.ip, str))
 @require("ip must not be empty", lambda args: len(args.ip) > 0)

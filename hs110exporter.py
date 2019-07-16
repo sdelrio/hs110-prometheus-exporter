@@ -69,7 +69,7 @@ class HS110data:
         self.__port = port
 
     @require("The encrypt parameter must be str type", lambda args: isinstance(args.string, str))
-    @require("string must not be empty", lambda args: len(args.string)>0)
+    @require("String must not be empty", lambda args: len(args.string) > 0)
     @ensure("Result must be bytes", lambda args, result: isinstance(result, bytes))
     def __encrypt(self, string: str) -> bytes:
         """ Encrypts string to send to HS110 """
@@ -81,6 +81,9 @@ class HS110data:
             result += bytes([a])
         return result
 
+    @require("The decrypt parameter must be bytes type", lambda args: isinstance(args.data, bytes))
+    @require("Parameter must have more than 3 bytes starting with 000", lambda args: len(args.data) > 3 and args.data[0:3] == b"\0\0\0")
+    @ensure("Result must be str", lambda args, result: isinstance(result, str))
     def __decrypt(self, data: bytes) -> str:
         """ Decrypts bytestring received by HS110 """
         if type(data) != bytes:
@@ -92,7 +95,7 @@ class HS110data:
             a = key ^ i
             key = i
             result += bytes([a])
-        return result.decode('latin-1')
+        return result.decode('latin-1', 'replace')
 
     def __str__(self):
         """ Prints content of received HS110 data """

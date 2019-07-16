@@ -69,14 +69,20 @@ class TestHS110data(unittest.TestCase):
     else:
       self.assertRaises(PreconditionError, hs110._HS110data__encrypt, sample_type)
 
-  def test_decryptvalues(self):
+  @given(none())
+  @example(b'\x00\x00\x00\x10')
+  @example(100)
+  @example(100.1)
+  @example(3j)
+  @example({"10.1.1.1"})
+  @example(set("10.1.1.1"))
+  @example("Hello world")
+  def test_decryptvalues(self, data):
     hs110 = HS110data()
-
-    self.assertRaises(TypeError, hs110._HS110data__decrypt, 100)
-    self.assertRaises(TypeError, hs110._HS110data__decrypt, 100.1)
-    self.assertRaises(TypeError, hs110._HS110data__decrypt, 3j)
-    self.assertRaises(TypeError, hs110._HS110data__decrypt, "Hello world")
-    self.assertIsInstance(hs110._HS110data__decrypt(b'\x00\x00\x00\x10'), str)
+    if (isinstance(data,bytes) and data[0:3] == b"\0\0\0"):
+      self.assertIsInstance(hs110._HS110data__decrypt(data), str)
+    else:
+      self.assertRaises(PreconditionError, hs110._HS110data__decrypt, data)
 
   @given(one_of(
     none(),
@@ -90,7 +96,6 @@ class TestHS110data(unittest.TestCase):
   @example('voltage')
   @example('total')
   def test_received_data(self, data_item):
-
     for h in ['h1', 'h2']:
       hs110 = HS110data(h)
       if data_item in ['power', 'current', 'voltage', 'total']:

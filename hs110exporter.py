@@ -16,8 +16,6 @@ version = 0.94
 @ensure("result is part of input", lambda args, result: result in args.ip )
 def validIP(ip: str) -> str:
     """ Check type format and valid IP for input parameter """
-#    if type(ip) != str:
-#        raise TypeError("The IP parameter must be a string")
 
     ip = ip.strip()  # Remove trailing spaces
 
@@ -29,6 +27,10 @@ def validIP(ip: str) -> str:
 
 class HS110data:
     """ Storage and management for HS110 data """
+    @require("ip must be a valid IP", lambda args: validIP(args.ip))
+    @require("hardware_version must be string", lambda args: isinstance(args.hardware_version, str))
+    @require("hardware_version must be 'h1' or 'h2' ", lambda args: args.hardware_version in ['h1', 'h2'])
+    @require("port must be intenger", lambda args: isinstance(args.port, int) and args.port > 0 and args.port < 32768)
     def __init__(self, hardware_version='h2', ip='192.168.1.53', port=9999):
         """ Constructor for HS110 data
         hardware_version: defaults to 'h2' can also be 'h1' """

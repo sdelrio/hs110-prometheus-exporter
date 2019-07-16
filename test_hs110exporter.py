@@ -3,10 +3,10 @@
 import unittest
 import socket
 
-from mock import patch, call  # python 3
+from unittest.mock import patch, call  # Python 3
 
 from dpcontracts import require, ensure, PreconditionError
-from hypothesis import given, assume
+from hypothesis import given, assume, example
 from hypothesis.strategies import integers, one_of, floats, text, lists, none, permutations, complex_numbers
 from hs110exporter import validIP, HS110data, socket
 
@@ -39,7 +39,6 @@ class TestValidIP(unittest.TestCase):
 
   @given(integers(min_value=-1000, max_value=1000))
   def test_ipvalues_hypo_raises(self, a):
-    print(a)
     if (a < 0 or a > 255):
       ip_string = "%s.%s.%s.%s" % (str(a), str(0), str(1), str(2))
       self.assertRaises(ValueError, validIP, ip_string)
@@ -103,57 +102,69 @@ class TestHS110data(unittest.TestCase):
     hs110.receive(sample_data_ok)
     hs110.receive(sample_data_h2)
 
+  @given(text())
+  @example('h1')
+  @example('h2')
+  def test_constructor(self, hardware):
 
-  def test_constructor(self):
-    h1_empty_print = 'current=0, voltage=0, power=0, total=0, err_code=0'
-    h1_empty = {
-      "emeter": {
-        "get_realtime": {
-          "current": 0,
-          "voltage": 0,
-          "power": 0,
-          "total": 0,
-          "err_code": 0
+    if (hardware in ['h1', 'h2']):
+      empty_print = {
+        'h1': 'current=0, voltage=0, power=0, total=0, err_code=0',
+        'h2': 'current_ma=0, voltage_mv=0, power_mw=0, total_wh=0, err_code=0'
+      }
+      empty_value = {
+        'h1': {
+          "emeter": {
+            "get_realtime": {
+              "current": 0,
+              "voltage": 0,
+              "power": 0,
+              "total": 0,
+              "err_code": 0
+            }
+          }
+        },
+        'h2': {
+          "emeter": {
+            "get_realtime": {
+              "current_ma": 0,
+              "voltage_mv": 0,
+              "power_mw": 0,
+              "total_wh": 0,
+              "err_code": 0
+            }
+          }
         }
       }
-    }
 
-    h2_empty_print = 'current_ma=0, voltage_mv=0, power_mw=0, total_wh=0, err_code=0'
-    h2_empty = {
-      "emeter": {
-        "get_realtime": {
-          "current_ma": 0,
-          "voltage_mv": 0,
-          "power_mw": 0,
-          "total_wh": 0,
-          "err_code": 0
-        }
-      }
-    }
+      hs110 = HS110data(hardware)
+      self.assertEqual(hs110._HS110data__hardware, hardware)
+      self.assertEqual(hs110._HS110data__received_data, empty_value[hardware])
+      self.assertEqual(str(hs110), empty_print[hardware])
 
-    self.assertRaises(ValueError, HS110data, hardware_version='h999')
+      self.assertEqual(hs110._HS110data__hardware, hardware)
+      hs110._HS110data__received_data['emeter']['get_realtime'][hs110._HS110data__keyname[hardware]['current']] = 1
+      hs110._HS110data__received_data['emeter']['get_realtime'][hs110._HS110data__keyname[hardware]['voltage']] = 220
+      hs110._HS110data__received_data['emeter']['get_realtime'][hs110._HS110data__keyname[hardware]['power']] = 220
+      hs110._HS110data__received_data['emeter']['get_realtime'][hs110._HS110data__keyname[hardware]['total']] = 1.3
+      hs110._HS110data__received_data['emeter']['get_realtime']['err_code'] = 1
 
-    hs110 = HS110data('h1')
-    self.assertEqual(hs110._HS110data__hardware, 'h1')
-    self.assertEqual(hs110._HS110data__received_data, h1_empty)
-    self.assertEqual(str(hs110), h1_empty_print)
+      hs110.reset_data()
+      self.assertEqual(hs110._HS110data__received_data, empty_value[hardware])
 
-    hs110 = HS110data('h2')
-    self.assertEqual(hs110._HS110data__hardware, 'h2')
-    self.assertEqual(hs110._HS110data__received_data, h2_empty)
-    self.assertEqual(str(hs110), h2_empty_print)
+    else:
 
-    hs110 = HS110data()
-    self.assertEqual(hs110._HS110data__hardware, 'h2')
+      self.assertRaises(PreconditionError, HS110data, hardware)
 
-    hs110._HS110data__received_data['emeter']['get_realtime']['current_ma'] = 1
-    hs110._HS110data__received_data['emeter']['get_realtime']['voltate_mv'] = 220
-    hs110._HS110data__received_data['emeter']['get_realtime']['power_mw'] = 220
-    hs110._HS110data__received_data['emeter']['get_realtime']['total_wh'] = 1.3
-    hs110._HS110data__received_data['emeter']['get_realtime']['err_code'] = 1
-    hs110.reset_data()
-    self.assertEqual(hs110._HS110data__received_data, h2_empty)
-
+  @given(integers(min_value=-40000, max_value=40000))
+  @example(9999)
+  def test_port(self, port_number):
+    if (port_number <=0 or port_number >32768):
+      self.assertRaises(PreconditionError, HS110data, port=port_number)
+    else:
+      hs110 = HS110data(port=port_number)
+      self.assertEqual(hs110._HS110data__port, port_number)
+  
   def test_get_cmd(self):
     cmd_encrypted = b'\x00\x00\x00\x1e\xd0\xf2\x97\xfa\x9f\xeb\x8e\xfc\xde\xe4\x9f\xbd\xda\xbf\xcb\x94\xe6\x83\xe2\x8e\xfa\x93\xfe\x9b\xb9\x83\xf8\x85\xf8\x85'
     hs110 = HS110data()

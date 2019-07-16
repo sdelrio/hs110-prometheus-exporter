@@ -68,26 +68,29 @@ class HS110data:
         self.__ip = ip
         self.__port = port
 
-    def __encrypt(self, string):
+    @require("string must be str type", lambda args: isinstance(args.string, str))
+    @require("string must not be empty", lambda args: len(args.string)>0)
+    @ensure("Result must be bytes", lambda args, result: isinstance(result, bytes))
+    def __encrypt(self, string: str) -> bytes:
         """ Encrypts string to send to HS110 """
         if type(string) not in [str]:
             raise TypeError("The encrypt parameter must be a string")
         key = self.__hs110_key
         result =  b"\0\0\0" + bytes([len(string)])
-        for i in bytes(string.encode('latin-1')):
+        for i in bytes(string.encode('latin-1', 'replace')):
             a = key ^ i
             key = a
             result += bytes([a])
         return result
 
-    def __decrypt(self, string):
+    def __decrypt(self, data: bytes) -> str:
         """ Decrypts bytestring received by HS110 """
-        if type(string) != bytes:
+        if type(data) != bytes:
             raise TypeError("The decrypt parameter must be bytes")
-        string= string[4:]
+        data= data[4:]
         key = self.__hs110_key
         result = b""
-        for i in bytes(string):
+        for i in bytes(data):
             a = key ^ i
             key = i
             result += bytes([a])
@@ -97,7 +100,7 @@ class HS110data:
         """ Prints content of received HS110 data """
         return ', '.join(['{key}={value}'.format(key=key, value=self.__received_data['emeter']['get_realtime'].get(key)) for key in self.__received_data['emeter']['get_realtime']])
 
-    def __empty_data(self):
+    def __empty_data(self) -> dict:
         """ Clear received data to 0 values """
         return {
             "emeter": {
@@ -111,7 +114,7 @@ class HS110data:
             }
         }
 
-    def receive(self, data):
+    def receive(self, data: bytes):
         """ Receive encrypted data, decrypts and stores into self.reived_data """
         if type(data) is not bytes:
             raise ValueError("receive_data parameter must be of type bytes")
@@ -125,7 +128,7 @@ class HS110data:
         else:
             self.__hardware = 'h1'
 
-    def get_cmd(self):
+    def get_cmd(self) -> bytes:
         """ Get encrypted command to get realtime info from HS110 """
         cmd = '{"emeter":{"get_realtime":{}}}'
         return self.__encrypt(cmd)
@@ -139,6 +142,7 @@ class HS110data:
         except KeyError:
             raise KeyError('get_data parameter must be one of: [' + ', '.join(self.__received_data["emeter"]["get_realtime"].keys()) + ']')
 
+    @ensure("Result must be a string", lambda args, result: isinstance(result, str)  )
     def get_connection_info(self):
         return 'HS110 connection: %s:%s' % (self.__ip, str(self.__port))
 

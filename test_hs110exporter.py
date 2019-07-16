@@ -52,14 +52,22 @@ class TestHS110data(unittest.TestCase):
     self.assertEqual(hs110._HS110data__encrypt(text_decrypted), text_encrypted)
     self.assertEqual(hs110._HS110data__decrypt(text_encrypted), text_decrypted)
 
-  def test_encryptvalues(self):
+  @given( one_of(
+    floats(),
+    none(),
+    text()
+  ))
+  @example(b'\x00\x00\x00\x10')
+  @example(100)
+  @example(3j)
+  @example({"10.1.1.1"})
+  @example(set("10.1.1.1"))
+  def test_encryptvalues(self, sample_type):
     hs110 = HS110data()
-
-    self.assertRaises(TypeError, hs110._HS110data__encrypt, 100)
-    self.assertRaises(TypeError, hs110._HS110data__encrypt, 100.1)
-    self.assertRaises(TypeError, hs110._HS110data__encrypt, 3j)
-    self.assertRaises(TypeError, hs110._HS110data__encrypt, b'\x00\x00\x00\x10')
-    self.assertIsInstance(hs110._HS110data__encrypt('Hello world'), bytes)
+    if (isinstance(sample_type, str) and len(sample_type) > 0):
+      self.assertIsInstance(hs110._HS110data__encrypt(sample_type), bytes)
+    else:
+      self.assertRaises(PreconditionError, hs110._HS110data__encrypt, sample_type)
 
   def test_decryptvalues(self):
     hs110 = HS110data()

@@ -68,13 +68,11 @@ class HS110data:
         self.__ip = ip
         self.__port = port
 
-    @require("string must be str type", lambda args: isinstance(args.string, str))
+    @require("The encrypt parameter must be str type", lambda args: isinstance(args.string, str))
     @require("string must not be empty", lambda args: len(args.string)>0)
     @ensure("Result must be bytes", lambda args, result: isinstance(result, bytes))
     def __encrypt(self, string: str) -> bytes:
         """ Encrypts string to send to HS110 """
-        if type(string) not in [str]:
-            raise TypeError("The encrypt parameter must be a string")
         key = self.__hs110_key
         result =  b"\0\0\0" + bytes([len(string)])
         for i in bytes(string.encode('latin-1', 'replace')):

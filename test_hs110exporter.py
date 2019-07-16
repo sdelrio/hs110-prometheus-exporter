@@ -78,20 +78,27 @@ class TestHS110data(unittest.TestCase):
     self.assertRaises(TypeError, hs110._HS110data__decrypt, "Hello world")
     self.assertIsInstance(hs110._HS110data__decrypt(b'\x00\x00\x00\x10'), str)
 
-  def test_received_data(self):
+  @given(one_of(
+    none(),
+    text())
+  )
+  @example(100)
+  @example(100.1)
+  @example(3j)
+  @example('power')
+  @example('current')
+  @example('voltage')
+  @example('total')
+  def test_received_data(self, data_item):
 
     for h in ['h1', 'h2']:
       hs110 = HS110data(h)
-      self.assertRaises(TypeError, hs110.get_data, 100)
-      self.assertRaises(TypeError, hs110.get_data, 100.1)
-      self.assertRaises(TypeError, hs110.get_data, 3j)
-      self.assertRaises(KeyError, hs110.get_data, 'nonexist')
-
-      self.assertEqual(hs110.get_data('power'), 0)
-      self.assertEqual(hs110.get_data('current'), 0)
-      self.assertEqual(hs110.get_data('voltage'), 0)
-      self.assertEqual(hs110.get_data('total'), 0)
-
+      if data_item in ['power', 'current', 'voltage', 'total']:
+        self.assertEqual(hs110.get_data(data_item), 0)
+      elif isinstance(data_item,str):
+        self.assertRaises(KeyError, hs110.get_data, data_item)
+      else:
+        self.assertRaises(TypeError, hs110.get_data, data_item)
 
   def test_receive(self):
     # current=0.342122, voltage=239.527888, power=66.941523, total=10.155, err_code=0

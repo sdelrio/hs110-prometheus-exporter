@@ -36,12 +36,7 @@ class HS110data:
         hardware_version: defaults to 'h2' can also be 'h1' 
         port: hss110 target port, for h1 and h2 is 9999,
         """
-
-        allowed_hardware = ['h1', 'h2']
-        if hardware_version in allowed_hardware:
-            self.__hardware = hardware_version
-        else:
-            raise ValueError("hardware_version must be " + ' or '.join(allowed_hardware))
+        self.__hardware = hardware_version
 
         self.__keyname = {
             "h1": { # Hardware version 1.x
@@ -86,8 +81,6 @@ class HS110data:
     @ensure("Result must be str", lambda args, result: isinstance(result, str))
     def __decrypt(self, data: bytes) -> str:
         """ Decrypts bytestring received by HS110 """
-        if type(data) != bytes:
-            raise TypeError("The decrypt parameter must be bytes")
         data= data[4:]
         key = self.__hs110_key
         result = b""

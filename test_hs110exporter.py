@@ -156,10 +156,10 @@ class TestHS110data(unittest.TestCase):
 
       self.assertRaises(PreconditionError, HS110data, hardware)
 
-  @given(integers(min_value=-40000, max_value=40000))
+  @given(integers(min_value=-100, max_value=70000))
   @example(9999)
   def test_port(self, port_number):
-    if (port_number <=0 or port_number >32768):
+    if (port_number <0 or port_number >65535):
       self.assertRaises(PreconditionError, HS110data, port=port_number)
     else:
       hs110 = HS110data(port=port_number)

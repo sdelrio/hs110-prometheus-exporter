@@ -90,7 +90,7 @@ class HS110data:
             result += bytes([a])
         return result.decode('latin-1', 'replace')
 
-    def __str__(self):
+    def __str__(self) -> str:
         """ Prints content of received HS110 data """
         return ', '.join(['{key}={value}'.format(key=key, value=self.__received_data['emeter']['get_realtime'].get(key)) for key in self.__received_data['emeter']['get_realtime']])
 
@@ -108,10 +108,10 @@ class HS110data:
             }
         }
 
+    @require("Parameter data must be bytes type", lambda args: isinstance(args.data, bytes))
+    @require("Parameter must have more than 3 bytes starting with 000", lambda args: len(args.data) > 3 and args.data[0:3] == b"\0\0\0")
     def receive(self, data: bytes):
         """ Receive encrypted data, decrypts and stores into self.reived_data """
-        if type(data) is not bytes:
-            raise ValueError("receive_data parameter must be of type bytes")
         try:
             self.__received_data = json.loads(self.__decrypt(data))
         except:
@@ -127,12 +127,12 @@ class HS110data:
         cmd = '{"emeter":{"get_realtime":{}}}'
         return self.__encrypt(cmd)
 
-    def get_data(self, item):
+    @require("Parameter data must be str type", lambda args: isinstance(args.item, str))
+    @ensure("Result must be a float or int", lambda args, result: isinstance(result, float) or isinstance(result, int)  )
+    def get_data(self, item: str):
         """ Get item (power, current, voltage or total) from HS110 array of values """
-        if type(item) is not str:
-            raise TypeError('get_data parameter must be str type')
         try:
-            return self.__received_data["emeter"]["get_realtime"][self.__keyname[self.__hardware][item]]
+            return float(self.__received_data["emeter"]["get_realtime"][self.__keyname[self.__hardware][item]])
         except KeyError:
             raise KeyError('get_data parameter must be one of: [' + ', '.join(self.__received_data["emeter"]["get_realtime"].keys()) + ']')
 

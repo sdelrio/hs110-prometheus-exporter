@@ -103,7 +103,7 @@ class TestHS110data(unittest.TestCase):
       elif isinstance(data_item,str):
         self.assertRaises(KeyError, hs110.get_data, data_item)
       else:
-        self.assertRaises(TypeError, hs110.get_data, data_item)
+        self.assertRaises(PreconditionError, hs110.get_data, data_item)
 
   def test_receive(self):
     # current=0.342122, voltage=239.527888, power=66.941523, total=10.155, err_code=0
@@ -114,10 +114,10 @@ class TestHS110data(unittest.TestCase):
     sample_data_h2 = b'\x00\x00\x00\x82\xd0\xf2\x97\xfa\x9f\xeb\x8e\xfc\xde\xe4\x9f\xbd\xda\xbf\xcb\x94\xe6\x83\xe2\x8e\xfa\x93\xfe\x9b\xb9\x83\xf8\xda\xb9\xcc\xbe\xcc\xa9\xc7\xb3\xec\x81\xe0\xc2\xf8\xc8\xe6\xd5\xe1\xd3\xe2\xd0\xe2\xce\xec\x9a\xf5\x99\xed\x8c\xeb\x8e\xd1\xbc\xca\xe8\xd2\xe0\xd3\xea\xc4\xf1\xc3\xf4\xcc\xf4\xcc\xe0\xc2\xb2\xdd\xaa\xcf\xbd\xe2\x8f\xf8\xda\xe0\xd6\xe0\xce\xf7\xc3\xf2\xc7\xf5\xc6\xea\xc8\xbc\xd3\xa7\xc6\xaa\xf5\x82\xea\xc8\xf2\xc3\xf3\xdd\xec\xd9\xec\xdc\xec\xdc\xf0\xd2\xb7\xc5\xb7\xe8\x8b\xe4\x80\xe5\xc7\xfd\xcd\xb0\xcd\xb0'
     hs110 = HS110data()
 
-    self.assertRaises(ValueError, hs110.receive, 'this is a string')
-    self.assertRaises(ValueError, hs110.receive, 123)
-    self.assertRaises(ValueError, hs110.receive, 1.1)
-    self.assertRaises(ValueError, hs110.receive, 3j)
+    self.assertRaises(PreconditionError, hs110.receive, 'this is a string')
+    self.assertRaises(PreconditionError, hs110.receive, 123)
+    self.assertRaises(PreconditionError, hs110.receive, 1.1)
+    self.assertRaises(PreconditionError, hs110.receive, 3j)
     self.assertRaises(ValueError, hs110.receive, sample_data_fail)
     hs110.receive(sample_data_ok)
     hs110.receive(sample_data_h2)

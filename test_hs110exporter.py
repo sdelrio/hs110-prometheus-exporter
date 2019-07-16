@@ -171,9 +171,15 @@ class TestHS110data(unittest.TestCase):
 
     self.assertEqual(hs110.get_cmd(), cmd_encrypted)
 
-  def test_get_connection_info(self):
-    test_ip   = '192.168.1.99'
-    test_port = 9998
+  @given(
+    integers(min_value=1, max_value=255),    # IPv4 1st group
+    integers(min_value=1, max_value=255),    # IPv4 2nd group
+    integers(min_value=1, max_value=255),    # IPv4 3rd group
+    integers(min_value=1, max_value=255),    # IPv4 4th group
+    integers(min_value=0, max_value=65535))  # HS110 Port
+  @example(192, 168, 1, 99, 9998)
+  def test_get_connection_info(self, ip1, ip2, ip3, ip4, test_port):
+    test_ip   = '%s.%s.%s.%s' % (ip1, ip2, ip3, ip4)
     info  =  "HS110 connection: %s:%s" % (test_ip, test_port)
     hs110 = HS110data(ip = test_ip, port = test_port)
 

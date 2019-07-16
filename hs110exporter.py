@@ -31,7 +31,7 @@ class HS110data:
     @require("hardware_version must be string", lambda args: isinstance(args.hardware_version, str))
     @require("hardware_version must be 'h1' or 'h2' ", lambda args: args.hardware_version in ['h1', 'h2'])
     @require("port must be intenger", lambda args: isinstance(args.port, int) and args.port >= 0 and args.port <= 65535)
-    def __init__(self, hardware_version='h2', ip='192.168.1.53', port=9999):
+    def __init__(self, hardware_version: str='h2', ip: str='192.168.1.53', port: int=9999):
         """ Constructor for HS110 data
         hardware_version: defaults to 'h2' can also be 'h1' 
         port: hss110 target port, for h1 and h2 is 9999,

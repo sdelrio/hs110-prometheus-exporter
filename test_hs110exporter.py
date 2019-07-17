@@ -2,31 +2,36 @@
 
 import unittest
 import socket
+import time
+import argparse
 
-from unittest.mock import patch, call  # Python 3
+from unittest.mock import patch, call, MagicMock  # Python 3
 
 from dpcontracts import require, ensure, PreconditionError
 from hypothesis import given, assume, example
 from hypothesis.strategies import integers, one_of, floats, text, lists, none, permutations, complex_numbers
-from hs110exporter import validIP, HS110data, socket
+from hs110exporter import validIP, HS110data, socket, main
 
 class TestValidIP(unittest.TestCase):
   def test_ipstring(self):
     self.assertEqual(validIP('192.168.0.1'), '192.168.0.1')
     self.assertEqual(validIP(' 192.168.0.1 '), '192.168.0.1')
 
-  @given( one_of(
-    integers(1), 
-    floats(1),
-    none(),
-    complex_numbers(1),
-    lists(floats(1))
-  ))
+  @given(none())
+  @example(b'\x00')
+  @example(100)
+  @example(100.1)
+  @example(3j)
+  @example({"string into dict"})
+  @example(set("string into set"))
   def test_ipstring_types(self, fake_ip_type):
     self.assertRaises(PreconditionError, validIP, fake_ip_type)
 
+#  @given(text())
+#  @example("192.168.0.1.a")
+#  @example("192.168.0.1.256")
   def test_ipvalues(self):
-    self.assertRaises(ValueError, validIP, '192.168.0.1.a')
+    self.assertRaises(ValueError, validIP, "192.168.0.a")
 
   @given(integers(min_value=1, max_value=255),
     integers(min_value=1, max_value=255),
@@ -218,8 +223,7 @@ class TestHS110data(unittest.TestCase):
   @patch.object(socket.socket,'recv')
   @patch.object(socket.socket,'close')
   @patch.object(socket.socket,'__init__')
-  @patch('builtins.print')
-  def test_socket(self, mock_print, mock_init, mock_close, mock_recv, mock_send, mock_connect, mock_settimeout):
+  def test_socket(self, mock_init, mock_close, mock_recv, mock_send, mock_connect, mock_settimeout):
     assert socket.socket.settimeout is mock_settimeout
     assert socket.socket.connect is mock_connect
     assert socket.socket.send is mock_send
@@ -249,18 +253,48 @@ class TestHS110data(unittest.TestCase):
 
     # Test socket exception from send
     mock_recv.side_effect = ValueError()
-    hs110.send('mycommand')
-    self.assertEqual(hs110._HS110data__received_data, hs110._HS110data__empty_data())
-    assert mock_print.mock_calls == [
-      call('[warning] Could not decrypt data from hs110. Reseting values.')
-    ]
+    with patch('builtins.print') as mock_print:
+      hs110.send('mycommand')
+
+      self.assertEqual(hs110._HS110data__received_data, hs110._HS110data__empty_data())
+      assert mock_print.mock_calls == [
+        call('[warning] Could not decrypt data from hs110. Reseting values.')
+      ]
 
     mock_connect.side_effect = socket.error()
-    hs110.send('mycommand')
-    assert mock_print.mock_calls == [
-      call('[warning] Could not decrypt data from hs110. Reseting values.'),
-      call('[error] Could not connect to the host 192.168.1.100:9991 Keeping last values')
-    ]
+    with patch('builtins.print') as mock_print:
+      hs110.send('mycommand')
+      assert mock_print.mock_calls == [
+        call('[error] Could not connect to the host 192.168.1.100:9991 Keeping last values')
+      ]
+
+  @patch('time.sleep')
+  @patch.object(HS110data, 'connect')
+  @patch('hs110exporter.start_http_server')
+  def test_main(self, mock_http_server, mock_connect, mock_sleep):
+    assert time.sleep is mock_sleep
+    assert HS110data.connect is mock_connect
+    mock_sleep.side_effect = Exception("Ignore it... just connect mock")
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t", "--target", metavar="<ip>", required=False, help="Target IP Address", default="192.168.1.1", type=str)
+    parser.add_argument("-f", "--frequency", metavar="<seconds>", required=False, help="Interval in seconds between checking measures", default=1, type=int)
+    parser.add_argument("-p", "--port", metavar="<port>", required=False, help="Port for listenin", default=8110, type=int)
+    args = parser.parse_args()
+
+    with patch('builtins.print') as mock_print:
+      assert mock_print is mock_print
+      self.assertRaises(Exception, main, args)
+
+      assert mock_print.mock_calls == [
+        call("[info] HS110 connection: 192.168.1.1:9999"),
+        call("[info] Exporter listenting on TCP: 8110"),
+        call("[info] current_ma=0, voltage_mv=0, power_mw=0, total_wh=0, err_code=0")
+      ]
+
+    mock_connect.assert_called_once()
+    assert mock_http_server.mock_calls == [ call(args.port) ]
+    assert mock_sleep.mock_calls == [ call(args.frequency) ]
 
 if __name__ == '__main__':
     unittest.main()

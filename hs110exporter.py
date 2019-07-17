@@ -90,10 +90,13 @@ class HS110data:
             result += bytes([a])
         return result.decode('latin-1', 'replace')
 
+    @ensure("Result must be str", lambda args, result: isinstance(result, str))
+    @ensure("Result str must not be empty", lambda args, result: len(result) > 0)
     def __str__(self) -> str:
         """ Prints content of received HS110 data """
         return ', '.join(['{key}={value}'.format(key=key, value=self.__received_data['emeter']['get_realtime'].get(key)) for key in self.__received_data['emeter']['get_realtime']])
 
+    @ensure("Result must be dict", lambda args, result: isinstance(result, dict))
     def __empty_data(self) -> dict:
         """ Clear received data to 0 values """
         return {
@@ -122,6 +125,7 @@ class HS110data:
         else:
             self.__hardware = 'h1'
 
+    @ensure("Result must be a bytes", lambda args, result: isinstance(result, bytes))
     def get_cmd(self) -> bytes:
         """ Get encrypted command to get realtime info from HS110 """
         cmd = '{"emeter":{"get_realtime":{}}}'
@@ -169,14 +173,7 @@ class HS110data:
             self.reset_data()
             print("[warning] Could not decrypt data from hs110. Reseting values.")
 
-# Main entry point
-if __name__ == '__main__':
-    # Parse commandline arguments
-    parser = argparse.ArgumentParser(description="TP-Link Wi-Fi Smart Plug Prometheus exporter v" + str(version))
-    parser.add_argument("-t", "--target", metavar="<ip>", required=True, help="Target IP Address", type=validIP)
-    parser.add_argument("-f", "--frequency", metavar="<seconds>", required=False, help="Interval in seconds between checking measures", default=1, type=int)
-    parser.add_argument("-p", "--port", metavar="<port>", required=False, help="Port for listenin", default=8110, type=int)
-    args = parser.parse_args()
+def main(args):
 
     # Init object
     hs110 = HS110data(hardware_version='h2', ip=args.target)
@@ -208,3 +205,14 @@ if __name__ == '__main__':
         hs110.connect()
         print('[info] %s' % hs110)
         time.sleep(args.frequency)
+
+# Main entry point
+if __name__ == '__main__':
+    # Parse commandline arguments
+    parser = argparse.ArgumentParser(description="TP-Link Wi-Fi Smart Plug Prometheus exporter v" + str(version))
+    parser.add_argument("-t", "--target", metavar="<ip>", required=True, help="Target IP Address", type=validIP)
+    parser.add_argument("-f", "--frequency", metavar="<seconds>", required=False, help="Interval in seconds between checking measures", default=1, type=int)
+    parser.add_argument("-p", "--port", metavar="<port>", required=False, help="Port for listenin", default=8110, type=int)
+    args = parser.parse_args()
+
+    main(args)

@@ -181,8 +181,6 @@ def main(args: argparse.Namespace) -> None:
     # Init object
     hs110 = HS110data(hardware_version='h2', ip=args.target)
 
-    # Send command and receive reply
-
     # Create a metric to track time spent and requests made.
     # Gaugage: it goes up and down, snapshot of state
 

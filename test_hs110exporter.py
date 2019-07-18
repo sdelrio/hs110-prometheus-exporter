@@ -296,5 +296,17 @@ class TestHS110data(unittest.TestCase):
     assert mock_http_server.mock_calls == [ call(args.port) ]
     assert mock_sleep.mock_calls == [ call(args.frequency) ]
 
+    fake_args = args
+    fake_args.target = None
+    self.assertRaises(PreconditionError, main, fake_args)
+
+    fake_args = args
+    fake_args.frequency = None
+    self.assertRaises(PreconditionError, main, fake_args)
+
+    fake_args = args
+    fake_args.port = None
+    self.assertRaises(PreconditionError, main, fake_args)
+
 if __name__ == '__main__':
     unittest.main()

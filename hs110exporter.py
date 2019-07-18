@@ -176,6 +176,9 @@ class HS110data:
             print("[warning] Could not decrypt data from hs110. Reseting values.")
 
 @require("Parameter data must be argparse.Namespace type", lambda args: isinstance(args.args, argparse.Namespace))
+@require("Parameter port must be int type", lambda args: isinstance(args.args.port, int))
+@require("Parameter frequency must be int type", lambda args: isinstance(args.args.frequency, int))
+@require("Parameter target must be str type", lambda args: isinstance(args.args.target, str))
 def main(args: argparse.Namespace) -> None:
 
     # Init object

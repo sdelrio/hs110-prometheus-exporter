@@ -9,6 +9,8 @@ import socket
 import argparse
 import json
 
+from typing import Union
+
 version = 0.94
 
 @require("ip must be a string", lambda args: isinstance(args.ip, str))
@@ -31,7 +33,7 @@ class HS110data:
     @require("hardware_version must be string", lambda args: isinstance(args.hardware_version, str))
     @require("hardware_version must be 'h1' or 'h2' ", lambda args: args.hardware_version in ['h1', 'h2'])
     @require("port must be intenger", lambda args: isinstance(args.port, int) and args.port >= 0 and args.port <= 65535)
-    def __init__(self, hardware_version: str='h2', ip: str='192.168.1.53', port: int=9999):
+    def __init__(self, hardware_version: str='h2', ip: str='192.168.1.53', port: int=9999) -> None:
         """ Constructor for HS110 data
         hardware_version: defaults to 'h2' can also be 'h1' 
         port: hss110 target port, for h1 and h2 is 9999,
@@ -113,7 +115,7 @@ class HS110data:
 
     @require("Parameter data must be bytes type", lambda args: isinstance(args.data, bytes))
     @require("Parameter must have more than 3 bytes starting with 000", lambda args: len(args.data) > 3 and args.data[0:3] == b"\0\0\0")
-    def receive(self, data: bytes):
+    def receive(self, data: bytes) -> None:
         """ Receive encrypted data, decrypts and stores into self.reived_data """
         try:
             self.__received_data = json.loads(self.__decrypt(data))
@@ -133,7 +135,7 @@ class HS110data:
 
     @require("Parameter data must be str type", lambda args: isinstance(args.item, str))
     @ensure("Result must be a float or int", lambda args, result: isinstance(result, float) or isinstance(result, int)  )
-    def get_data(self, item: str):
+    def get_data(self, item: str) -> Union[float, int]:
         """ Get item (power, current, voltage or total) from HS110 array of values """
         try:
             return float(self.__received_data["emeter"]["get_realtime"][self.__keyname[self.__hardware][item]])
@@ -141,18 +143,18 @@ class HS110data:
             raise KeyError('get_data parameter must be one of: [' + ', '.join(self.__received_data["emeter"]["get_realtime"].keys()) + ']')
 
     @ensure("Result must be a string", lambda args, result: isinstance(result, str)  )
-    def get_connection_info(self):
+    def get_connection_info(self) -> str:
         return 'HS110 connection: %s:%s' % (self.__ip, str(self.__port))
 
-    def reset_data(self):
+    def reset_data(self) -> None:
         """ Reset self.__received_data values to 0 """
         self.__received_data = self.__empty_data()
 
-    def connect(self):
+    def connect(self) -> None:
         """ Connect to hss110 with get command to receive metrics """
         self.send(self.get_cmd())
 
-    def send(self, command):
+    def send(self, command: bytes) -> None:
         """ Send command to hs110 and receive data """
         sock_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock_tcp.settimeout(2)
@@ -173,7 +175,8 @@ class HS110data:
             self.reset_data()
             print("[warning] Could not decrypt data from hs110. Reseting values.")
 
-def main(args):
+@require("Parameter data must be argparse.Namespace type", lambda args: isinstance(args.args, argparse.Namespace))
+def main(args: argparse.Namespace) -> None:
 
     # Init object
     hs110 = HS110data(hardware_version='h2', ip=args.target)

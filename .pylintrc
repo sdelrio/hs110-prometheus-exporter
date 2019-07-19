@@ -246,6 +246,8 @@ good-names=i,
            j,
            k,
            a,
+           ip,
+           version,
            ex,
            Run,
            _

@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from dpcontracts import require, ensure
-from prometheus_client import start_http_server, Gauge
-
 import time
 import socket
 import argparse
 import json
 
 from typing import Union
+from dpcontracts import require, ensure
+from prometheus_client import start_http_server, Gauge
 
 version = 0.95
 
@@ -17,7 +16,7 @@ version = 0.95
 @require("ip must be a string", lambda args: isinstance(args.ip, str))
 @require("ip must not be empty", lambda args: len(args.ip) > 0)
 @ensure("result is part of input", lambda args, result: result in args.ip)
-def validIP(ip: str) -> str:
+def valid_ip(ip: str) -> str:
     """ Check type format and valid IP for input parameter """
 
     ip = ip.strip()  # Remove trailing spaces
@@ -31,7 +30,7 @@ def validIP(ip: str) -> str:
 
 class HS110data:
     """ Storage and management for HS110 data """
-    @require("ip must be a valid IP", lambda args: validIP(args.ip))
+    @require("ip must be a valid IP", lambda args: valid_ip(args.ip))
     @require("hardware_version must be string",
              lambda args: isinstance(args.hardware_version, str))
     @require("hardware_version must be 'h1' or 'h2' ",
@@ -152,7 +151,7 @@ class HS110data:
 
     @require("Parameter data must be str type", lambda args: isinstance(args.item, str))
     @ensure("Result must be a float or int",
-            lambda args, result: isinstance(result, float) or isinstance(result, int))
+            lambda args, result: isinstance(result, (float, int)))
     def get_data(self, item: str) -> Union[float, int]:
         """ Get item (power, current, voltage or total) from HS110 array of values """
         try:
@@ -191,9 +190,11 @@ class HS110data:
 
         # Sample return value received:
         # HS110 Hardware 1:
-        # {"emeter":{"get_realtime":{"voltage":229865,"current":1110,"power":231866,"total":228,"err_code":0}}}
+        # {"emeter":{"get_realtime":
+        # {"voltage":229865,"current":1110,"power":231866,"total":228,"err_code":0}}}
         # HS110 Hardware 2:
-        # {"emeter":{"get_realtime":{"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}
+        # {"emeter":{"get_realtime":
+        # {"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}
 
             self.receive(data)  # Receive and decrypts data
         except socket.error:
@@ -225,15 +226,15 @@ def main(args: argparse.Namespace) -> None:
     # Create a metric to track time spent and requests made.
     # Gaugage: it goes up and down, snapshot of state
 
-    REQUEST_POWER = Gauge('hs110_power_watt', 'HS110 Watt measure')
-    REQUEST_CURRENT = Gauge('hs110_current', 'HS110 Current measure')
-    REQUEST_VOLTAGE = Gauge('hs110_voltage', 'HS110 Voltage measure')
-    REQUEST_TOTAL = Gauge('hs110_total', 'HS110 Energy measure')
+    request_power = Gauge('hs110_power_watt', 'HS110 Watt measure')
+    request_current = Gauge('hs110_current', 'HS110 Current measure')
+    request_voltage = Gauge('hs110_voltage', 'HS110 Voltage measure')
+    request_total = Gauge('hs110_total', 'HS110 Energy measure')
 
-    REQUEST_POWER.set_function(lambda: hs110.get_data('power'))
-    REQUEST_CURRENT.set_function(lambda: hs110.get_data('current'))
-    REQUEST_VOLTAGE.set_function(lambda: hs110.get_data('voltage'))
-    REQUEST_TOTAL.set_function(lambda: hs110.get_data('total'))
+    request_power.set_function(lambda: hs110.get_data('power'))
+    request_current.set_function(lambda: hs110.get_data('current'))
+    request_voltage.set_function(lambda: hs110.get_data('voltage'))
+    request_total.set_function(lambda: hs110.get_data('total'))
 
     print('[info] %s' % hs110.get_connection_info())
 
@@ -248,8 +249,9 @@ def main(args: argparse.Namespace) -> None:
         time.sleep(args.frequency)
 
 
-# Main entry point
-if __name__ == '__main__':
+@ensure("Result must be args.Namespace",
+        lambda args, result: isinstance(result, argparse.Namespace))
+def command_line_args() -> argparse.Namespace:
     # Parse commandline arguments
     parser = argparse.ArgumentParser(
         description="TP-Link Wi-Fi Smart Plug Prometheus exporter v" + str(version)
@@ -257,7 +259,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "-t",
         "--target", metavar="<ip>", required=True,
-        help="Target IP Address", type=validIP)
+        help="Target IP Address", type=valid_ip)
     parser.add_argument(
         "-f",
         "--frequency", metavar="<seconds>", required=False,
@@ -266,6 +268,9 @@ if __name__ == '__main__':
         "-p",
         "--port", metavar="<port>", required=False,
         help="Port for listenin", default=8110, type=int)
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    main(args)
+
+# Main entry point
+if __name__ == '__main__':
+    main(command_line_args())

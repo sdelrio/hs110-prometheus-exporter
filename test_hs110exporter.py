@@ -10,12 +10,12 @@ from unittest.mock import patch, call, MagicMock  # Python 3
 from dpcontracts import require, ensure, PreconditionError
 from hypothesis import given, assume, example
 from hypothesis.strategies import integers, one_of, floats, text, lists, none, permutations, complex_numbers
-from hs110exporter import validIP, HS110data, socket, main
+from hs110exporter import valid_ip, HS110data, socket, main, command_line_args
 
 class TestValidIP(unittest.TestCase):
   def test_ipstring(self):
-    self.assertEqual(validIP('192.168.0.1'), '192.168.0.1')
-    self.assertEqual(validIP(' 192.168.0.1 '), '192.168.0.1')
+    self.assertEqual(valid_ip('192.168.0.1'), '192.168.0.1')
+    self.assertEqual(valid_ip(' 192.168.0.1 '), '192.168.0.1')
 
   @given(none())
   @example(b'\x00')
@@ -25,13 +25,13 @@ class TestValidIP(unittest.TestCase):
   @example({"string into dict"})
   @example(set("string into set"))
   def test_ipstring_types(self, fake_ip_type):
-    self.assertRaises(PreconditionError, validIP, fake_ip_type)
+    self.assertRaises(PreconditionError, valid_ip, fake_ip_type)
 
 #  @given(text())
 #  @example("192.168.0.1.a")
 #  @example("192.168.0.1.256")
   def test_ipvalues(self):
-    self.assertRaises(ValueError, validIP, "192.168.0.a")
+    self.assertRaises(ValueError, valid_ip, "192.168.0.a")
 
   @given(integers(min_value=1, max_value=255),
     integers(min_value=1, max_value=255),
@@ -40,13 +40,13 @@ class TestValidIP(unittest.TestCase):
   )
   def test_ipvalues_hypo(self, a, b, c, d):
     ip_string = "%s.%s.%s.%s" % (str(a), str(b), str(c), str(d))
-    ip_string == validIP(ip_string) 
+    ip_string == valid_ip(ip_string) 
 
   @given(integers(min_value=-1000, max_value=1000))
   def test_ipvalues_hypo_raises(self, a):
     if (a < 0 or a > 255):
       ip_string = "%s.%s.%s.%s" % (str(a), str(0), str(1), str(2))
-      self.assertRaises(ValueError, validIP, ip_string)
+      self.assertRaises(ValueError, valid_ip, ip_string)
 
 class TestHS110data(unittest.TestCase):
   def test_encryptstring(self):
@@ -283,7 +283,7 @@ class TestHS110data(unittest.TestCase):
     args = parser.parse_args()
 
     with patch('builtins.print') as mock_print:
-      assert mock_print is mock_print
+      assert print is mock_print
       self.assertRaises(Exception, main, args)
 
       assert mock_print.mock_calls == [
@@ -307,6 +307,14 @@ class TestHS110data(unittest.TestCase):
     fake_args = args
     fake_args.port = None
     self.assertRaises(PreconditionError, main, fake_args)
+
+  def test_command_line(self):
+    with self.assertRaises(SystemExit) as cm:
+        command_line_args()
+
+    the_exception = cm.exception
+    self.assertEqual(the_exception.code, 2)
+
 
 if __name__ == '__main__':
     unittest.main()

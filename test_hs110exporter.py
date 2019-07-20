@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 
 import unittest
 from unittest.mock import patch, call  # Python 3

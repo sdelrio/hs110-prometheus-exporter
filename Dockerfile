@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=jfloff/alpine-python
-ARG BASE_IMAGE_TAG=3.6-slim
+ARG BASE_IMAGE_TAG=3.7-slim
 
 FROM $BASE_IMAGE:$BASE_IMAGE_TAG
 
@@ -11,7 +11,7 @@ RUN pip install -r /tmp/requirements.txt && rm -f /tmp/requirements.txt
 ENV LISTENPORT 8110
 ENV HS110IP 192.168.1.53
 ENV FREQUENCY 1
-ENV VERSION 0.95
+ENV VERSION 0.96
 
 ADD hs110exporter.py .
 ADD entrypoint.sh .

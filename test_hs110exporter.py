@@ -5,11 +5,10 @@ from unittest.mock import patch, call  # Python 3
 import time
 import argparse
 
-
 from dpcontracts import PreconditionError
 from hypothesis import given, example
 from hypothesis.strategies import integers, one_of, floats, text, none
-from hs110exporter import valid_ip, HS110data, socket, main, command_line_args
+from hs110exporter import valid_ip, HS110data, socket, main, command_line_args, sys
 
 
 class TestValidIP(unittest.TestCase):
@@ -260,10 +259,12 @@ class TestHS110data(unittest.TestCase):
     @patch.object(socket.socket, 'recv')
     @patch.object(socket.socket, 'close')
     @patch.object(socket.socket, '__init__')
+    @patch.object(sys, 'exit')
     def test_socket(
-            self, mock_init, mock_close, mock_recv, mock_send,
+            self, mock_exit, mock_init, mock_close, mock_recv, mock_send,
             mock_connect, mock_settimeout
     ):
+        assert sys.exit is mock_exit
         assert socket.socket.settimeout is mock_settimeout
         assert socket.socket.connect is mock_connect
         assert socket.socket.send is mock_send
@@ -312,15 +313,18 @@ class TestHS110data(unittest.TestCase):
                 call('[warning] Could not decrypt data from hs110. Reseting values.')
             ]
 
+        hs110._HS110data__socket_counter = 2  # socket_counter = 2
         mock_connect.side_effect = socket.error()
         with patch('builtins.print') as mock_print:
-            hs110.send('mycommand')
+            hs110.send('mycommand')  # socket_counter = 1
             assert mock_print.mock_calls == [
                 call((
                     '[error] Could not connect to the host '
                     '192.168.1.100:9991 Keeping last values'
                 ))
             ]
+            hs110.send('mycommand')  # socket_counter = 0
+            mock_exit.assert_called_once()
 
     @patch('time.sleep')
     @patch.object(HS110data, 'connect')

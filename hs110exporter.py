@@ -5,12 +5,14 @@ import time
 import socket
 import argparse
 import json
+import sys
 
 from typing import Union
 from dpcontracts import require, ensure
 from prometheus_client import start_http_server, Gauge
 
-version = 0.95
+VERSION = 0.96
+SOCKET_RETRY = 100
 
 
 @require("ip must be a string", lambda args: isinstance(args.ip, str))
@@ -72,6 +74,7 @@ class HS110data:
         # HS110 address and port
         self.__ip = ip
         self.__port = port
+        self.__socket_counter = SOCKET_RETRY
 
     @require("The encrypt parameter must be str type",
              lambda args: isinstance(args.string, str))
@@ -197,14 +200,17 @@ class HS110data:
         # {"voltage_mv":229865,"current_ma":1110,"power_mw":231866,"total_wh":228,"err_code":0}}}
 
             self.receive(data)  # Receive and decrypts data
-        except socket.error:
+        except socket.error as error:
             print(
-                "[error] Could not connect to the host "
+                "[error] Could not connect to the host %s" % format(error)
                 + self.__ip
                 + ":"
                 + str(self.__port)
                 + " Keeping last values"
             )
+            self.__socket_counter -= 1
+            if self.__socket_counter == 0:
+                sys.exit('Connection retry limit %s reached' % SOCKET_RETRY)
         except ValueError:
             self.reset_data()
             print("[warning] Could not decrypt data from hs110. Reseting values.")
@@ -254,7 +260,7 @@ def main(args: argparse.Namespace) -> None:
 def command_line_args() -> argparse.Namespace:
     # Parse commandline arguments
     parser = argparse.ArgumentParser(
-        description="TP-Link Wi-Fi Smart Plug Prometheus exporter v" + str(version)
+        description="TP-Link Wi-Fi Smart Plug Prometheus exporter v" + str(VERSION)
     )
     parser.add_argument(
         "-t",

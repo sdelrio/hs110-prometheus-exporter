@@ -11,7 +11,7 @@ from typing import Union
 from dpcontracts import require, ensure
 from prometheus_client import start_http_server, Gauge
 
-VERSION = 0.96
+VERSION = 0.97
 SOCKET_RETRY = 100
 
 
@@ -190,6 +190,7 @@ class HS110data:
             sock_tcp.send(command)
             data = sock_tcp.recv(2048)
             sock_tcp.close()
+            self.__socket_counter = SOCKET_RETRY
 
         # Sample return value received:
         # HS110 Hardware 1:
@@ -237,10 +238,10 @@ def main(args: argparse.Namespace) -> None:
     request_voltage = Gauge('hs110_voltage', 'HS110 Voltage measure')
     request_total = Gauge('hs110_total', 'HS110 Energy measure')
 
-    request_power.set_function(lambda: hs110.get_data('power'))
-    request_current.set_function(lambda: hs110.get_data('current'))
-    request_voltage.set_function(lambda: hs110.get_data('voltage'))
-    request_total.set_function(lambda: hs110.get_data('total'))
+    request_power.set_function(lambda: hs110.get_data('power'))  # pragma: no cover
+    request_current.set_function(lambda: hs110.get_data('current'))  # pragma: no cover
+    request_voltage.set_function(lambda: hs110.get_data('voltage'))  # pragma: no cover
+    request_total.set_function(lambda: hs110.get_data('total'))  # pragma: no cover
 
     print('[info] %s' % hs110.get_connection_info())
 
@@ -255,7 +256,7 @@ def main(args: argparse.Namespace) -> None:
         time.sleep(args.frequency)
 
 
-@ensure("Result must be args.Namespace",
+@ensure("Result must be args.Namespace",  # pragma: no cover
         lambda args, result: isinstance(result, argparse.Namespace))
 def command_line_args() -> argparse.Namespace:
     # Parse commandline arguments

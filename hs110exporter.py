@@ -247,7 +247,7 @@ def main(args: argparse.Namespace) -> None:
 
     # Start up the server to expose the metrics.
     start_http_server(args.port)
-    print("[info] Exporter listenting on TCP: " + str(args.port))
+    print("[info] Exporter listening on TCP: " + str(args.port))
 
     # Main loop
     while True:

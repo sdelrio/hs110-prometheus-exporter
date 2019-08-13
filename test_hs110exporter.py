@@ -352,7 +352,7 @@ class TestHS110data(unittest.TestCase):
 
             assert mock_print.mock_calls == [
                 call("[info] HS110 connection: 192.168.1.1:9999"),
-                call("[info] Exporter listenting on TCP: 8110"),
+                call("[info] Exporter listening on TCP: 8110"),
                 call(("[info] current_ma=0, voltage_mv=0, "
                       "power_mw=0, total_wh=0, err_code=0"))
             ]

@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir --install-option="--prefix=/pip_install" -r /tmp/
 # RUN IMAGE
 #######################################################
 FROM $BASE_IMAGE:$BASE_IMAGE_TAG as run
-COPY --from=build /pip_install /usr/local/lib/pyenv/versions/3.7.3
+COPY --from=build /pip_install /root/.local
 
 WORKDIR /usr/local/bin
 

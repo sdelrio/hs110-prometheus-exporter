@@ -25,7 +25,7 @@ ENV HS110IP 192.168.1.53
 ENV FREQUENCY 1
 ENV VERSION 0.97
 
-COPY hs110exporter.py entrypoint.sh .
+COPY hs110exporter.py entrypoint.sh ./
 RUN chmod +x entrypoint.sh
 
 EXPOSE 8110

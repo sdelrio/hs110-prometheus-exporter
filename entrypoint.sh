@@ -10,6 +10,8 @@ if [ -z "$HS110IP" ]; then
     exit -1
 fi
 
+HS110IP=$(getent hosts $HS110IP | cut -f1 -d' ')
+
 if [ -z "$FREQUENCY" ]; then
     FREQUENCY=1
 fi

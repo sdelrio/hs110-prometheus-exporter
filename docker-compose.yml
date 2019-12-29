@@ -1,0 +1,10 @@
+version: '3.7'
+services:
+  hs110:
+    image: tilt.dev/hs110-exporter
+    environment:
+      - HS110IP=192.168.1.53
+      - FREQUENCY=1
+      - LISTENPORT=8110
+    ports:
+      - 8110:8110

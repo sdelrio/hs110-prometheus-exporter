@@ -28,6 +28,13 @@ The script will get values from the IP where HS110 is configured and export on p
 ```
 docker run -d  --restart=always -p 8110:8110 -e HS110IP 192.168.1.111 -e FREQUENCY 15 sdelrio/hs110-exporter
 ```
+
+## Execute with docker-compose
+
+```
+docker-compose up -d
+```
+
 ## Execute with k8s
 
 ```
@@ -74,3 +81,11 @@ You can get the data exported to prometheus to use into grafana like this:
 
 ![](img/hs110-grafana.png?raw=true "Grafana Screenshot")
 
+# Development environment
+
+* Requires [tilt.dev](https://docs.tilt.dev/install.html) to be installed
+* Autoreload and autoupdate container when hs110-exporter.py is updated
+
+```
+tilt up
+```

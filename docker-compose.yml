@@ -7,6 +7,7 @@ volumes:
 services:
   hs110:
     image: tilt.dev/hs110-exporter
+    build: .
     environment:
       - HS110IP=192.168.1.53
       - FREQUENCY=1
@@ -16,6 +17,7 @@ services:
 
   prometheus:
     image: tilt.dev/prometheus
+    build: ./prometheus
     volumes:
       - prometheus_data:/prometheus
     command:
@@ -29,6 +31,7 @@ services:
 
   grafana:
     image: tilt.dev/grafana
+    build: ./grafana
     user: "104"
     depends_on:
       - prometheus

@@ -5,15 +5,24 @@ volumes:
     grafana_data: {}
 
 services:
+  hs110sim:
+    container_name: hs110sim
+    image: tilt.dev/hs110-sim
+    build: ./hs110sim
+#    ports:
+#      - 9999:9999
+
   hs110:
     image: tilt.dev/hs110-exporter
+    depends_on: [ hs110sim ]
     build: .
     environment:
-      - HS110IP=192.168.1.53
+      - HS110IP=hs110sim
       - FREQUENCY=1
       - LISTENPORT=8110
-    ports:
-      - 8110:8110
+#    ports:
+#      - 8110:8110
+
 
   prometheus:
     image: tilt.dev/prometheus

@@ -1,0 +1,21 @@
+#!/bin/rash -vv
+
+- name: "HS110IP | check environment variable is defined and not empty"
+  assert:
+    that:
+      - env.HS110IP is defined
+      - env.HS110IP != ""
+
+- name: "HS110IP | resolve to ip address"
+  command: |
+    getent hosts {{ env.HS110IP }} |
+    cut -f1 -d' ' | tr -d "\n"
+  register: ipaddress
+
+- name: "HS110 exporter| execution"
+  command: export PYTHONUNBUFFERED=1; /usr/local/bin/hs110exporter.py -t {{ ipaddress.output }} -f {{ env.FREQUENCY | default(value='1') }} -p {{ env.LISTENPORT }}
+  # transforms process in pid 1 (similar to `exec` in bash)
+  #transfer_pid_1: true
+  #environment:
+  #  PYTHONUNBUFFERED: 1
+

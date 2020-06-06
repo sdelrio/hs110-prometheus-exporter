@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/python3 -u
 # -*- coding: utf-8 -*-
 
 import time
@@ -6,6 +6,7 @@ import socket
 import argparse
 import json
 import sys
+from os import environ
 
 from typing import Union
 from dpcontracts import require, ensure

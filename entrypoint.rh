@@ -1,4 +1,4 @@
-#!/bin/rash -vv
+#!/bin/rash
 
 - name: "HS110IP | check environment variable is defined and not empty"
   assert:
@@ -12,10 +12,12 @@
     cut -f1 -d' ' | tr -d "\n"
   register: ipaddress
 
+- name: "Debug | execution"
+  command: export PYTHONUNBUFFERED=1; echo $PYTHONUNBUFFERED
+
 - name: "HS110 exporter| execution"
-  command: export PYTHONUNBUFFERED=1; /usr/local/bin/hs110exporter.py -t {{ ipaddress.output }} -f {{ env.FREQUENCY | default(value='1') }} -p {{ env.LISTENPORT }}
+  command:
+    cmd: /usr/local/bin/hs110exporter.py -t {{ ipaddress.output }} -f {{ env.FREQUENCY | default(value='1') }} -p {{ env.LISTENPORT }}
+    transfer_pid_1: true
   # transforms process in pid 1 (similar to `exec` in bash)
-  #transfer_pid_1: true
-  #environment:
-  #  PYTHONUNBUFFERED: 1
 

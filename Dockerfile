@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir --install-option="--prefix=/pip_install" -r /tmp/
 
 
 #######################################################
-# RUSH IMAGE
+# RASH IMAGE
 #######################################################
 
 FROM rustagainshell/rash AS rash

@@ -6,7 +6,6 @@ import socket
 import argparse
 import json
 import sys
-from os import environ
 
 from typing import Union
 from dpcontracts import require, ensure

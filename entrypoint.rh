@@ -1,4 +1,4 @@
-#!/bin/rash -vvv
+#!/bin/rash
 
 - name: "CHECK | HS110IP environment variable is defined and not empty"
   assert:

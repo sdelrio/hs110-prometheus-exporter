@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir --install-option="--prefix=/pip_install" -r /tmp/
 # RASH IMAGE
 #######################################################
 
-FROM rustagainshell/rash AS rash
+FROM rustagainshell/rash:1.0.0 AS rash
 
 #######################################################
 # RUN IMAGE
@@ -31,7 +31,7 @@ WORKDIR /usr/local/bin
 ENV LISTENPORT 8110
 ENV HS110IP 192.168.1.53
 ENV FREQUENCY 1
-ENV VERSION 0.97
+ENV VERSION 0.98
 
 COPY hs110exporter.py entrypoint.rh ./
 RUN chmod +x entrypoint.rh

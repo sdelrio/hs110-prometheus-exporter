@@ -6,7 +6,7 @@ docker_build('tilt.dev/hs110-exporter', '.',
     sync('./hs110exporter.py', '/usr/local/bin/hs110exporter.py'),
     restart_container(),
   ],
-  only=['./hs110exporter.py', './entrypoint.sh', './requirements.txt']
+  only=['./hs110exporter.py', './entrypoint.rh', './requirements.txt']
 )
 # https://docs.tilt.dev/file_changes.html
 

@@ -6,6 +6,7 @@ VERSION = $(shell cat VERSION)
 IMAGE_NAME ?= sdelrio/hs110-exporter
 IMAGE_TAG ?= latest
 IMAGE_TEST_TAG ?= test
+IMAGE_PREFIX ?= docker.pkg.github.com/
 
 VERSION ?= master
 DOCKERFILES ?= $(shell find . -maxdepth 1 -name 'Dockerfile*')
@@ -23,7 +24,7 @@ build-images:
         export TAG_SUFFIX=`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
 		echo "--> Building $(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX}"; \
 		docker build --progress=plain -f $$DOCKERFILE \
-			-t $(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX}\
+			-t $(IMAGE_PREFIX)$(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX}\
 			. || exit -1 ;\
 	done; \
 
@@ -31,7 +32,7 @@ build-test-image:	## build images
 build-test-image:
 	@echo "--> Building test image $(IMAGE_NAME):$(IMAGE_TEST_TAG)"; \
 	docker build --target=test --progress=plain -f Dockerfile \
-		-t $(IMAGE_NAME):$(IMAGE_TEST_TAG) \
+		-t $(IMAGE_PREFIX)$(IMAGE_NAME):$(IMAGE_TEST_TAG) \
 		. || exit -2 ;\
 
 build-test-images:	## build images
@@ -40,7 +41,7 @@ build-test-images:
         export TAG_SUFFIX=`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
 		echo "--> Building test image $(IMAGE_NAME):$(IMAGE_TEST_TAG)$${TAG_SUFFIX}"; \
 		docker build --target=test --progress=plain -f $$DOCKERFILE \
-			-t $(IMAGE_NAME):$(IMAGE_TEST_TAG)$${TAG_SUFFIX} \
+			-t $(IMAGE_PREFIX)$(IMAGE_NAME):$(IMAGE_TEST_TAG)$${TAG_SUFFIX} \
 			. || exit -2 ;\
 	done; \
 
@@ -48,7 +49,7 @@ test-image:	## test with the Dockerfile image
 test-image: build-test-image
 	@echo "--> Testing $(IMAGE_NAME):$(IMAGE_TAG)"; \
 	docker run --rm -t \
-		$(IMAGE_NAME):$(IMAGE_TEST_TAG); \
+		$(IMAGE_PREFIX)$(IMAGE_NAME):$(IMAGE_TEST_TAG); \
 
 test-images:	## test with docker images
 test-images: build-test-images
@@ -56,13 +57,15 @@ test-images: build-test-images
         export TAG_SUFFIX=`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
 		echo "--> Testing $(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX}"; \
 		docker run --rm -t \
-			$(IMAGE_NAME):$(IMAGE_TEST_TAG)$${TAG_SUFFIX}; \
+			$(IMAGE_PREFIX)$(IMAGE_NAME):$(IMAGE_TEST_TAG)$${TAG_SUFFIX}; \
 	done;
 
 publish-images:	## publish docker images
 publish-images: build-images
 	@for DOCKERFILE in $(DOCKERFILES);do \
-		echo docker push $(IMAGE_NAME):$(IMAGE_TAG)`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'` ; \
+        export TAG_SUFFIX=`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
+		echo "--> Publishing $(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX}"; \
+		docker push $(IMAGE_PREFIX)$(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX} ; \
 	done; \
 
 update-version: ## update version from VERSION file in all Dockerfiles

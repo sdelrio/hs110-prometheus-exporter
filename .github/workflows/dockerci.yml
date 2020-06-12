@@ -51,7 +51,7 @@ jobs:
         run: make build-images
 
       - name: Log into registry
-        run: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+        run: echo "$DOCKER_PASS" | docker login https://docker.pkg.github.com -u $DOCKER_USER --password-stdin
 
       - name: Push image
         run: |

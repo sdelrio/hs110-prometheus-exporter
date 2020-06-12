@@ -17,6 +17,20 @@ env:
   DOCKER_PASS: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
+  pullrequest:
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'pull_request'
+
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Prepare qemu for armbuilds
+        run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
+      - name: Build image
+        run: make test-images
 
   push:
     runs-on: ubuntu-latest

@@ -44,6 +44,12 @@ build-test-images:
 			. || exit -2 ;\
 	done; \
 
+test-image:	## test with the Dockerfile image
+test-image: build-test-image
+	@echo "--> Testing $(IMAGE_NAME):$(IMAGE_TAG)"; \
+	docker run --rm -t \
+		$(IMAGE_NAME):$(IMAGE_TEST_TAG); \
+
 test-images:	## test with docker images
 test-images: build-test-images
 	@for DOCKERFILE in $(DOCKERFILES);do \

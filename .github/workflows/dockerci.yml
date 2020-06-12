@@ -12,6 +12,7 @@ on:
 
 env:
   COMPOSE_DOCKER_CLI_BUILD: 1
+  COMPOSE_INTERACTIVE_NO_CLI: 1  ## fixes the input device is not a TTY on docker compose
   DOCKER_BUILDKIT: 1
   DOCKER_USER: ${{ github.actor }}
   DOCKER_PASS: ${{ secrets.GITHUB_TOKEN }}
@@ -29,7 +30,7 @@ jobs:
       - name: Prepare qemu for armbuilds
         run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
-      - name: Build image
+      - name: Build test image
         run: make test-images
 
   push:

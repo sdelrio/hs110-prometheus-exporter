@@ -39,7 +39,7 @@ test-images:	## test with docker images
 test-images: build-test-images
 	@for DOCKERFILE in $(DOCKERFILES);do \
 		echo "--> Testing $(IMAGE_NAME):$(IMAGE_TAG)"; \
-		docker run --rm -ti \
+		docker run --rm -t \
 			$(IMAGE_NAME):$(IMAGE_TEST_TAG)`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
 	done;
 

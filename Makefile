@@ -49,7 +49,7 @@ publish-images: build-images
 		echo docker push $(IMAGE_NAME):$(IMAGE_TAG)`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'` ; \
 	done; \
 
-update-version: ## update version from VERSION file in all Cargo.toml manifests
+update-version: ## update version from VERSION file in all Dockerfiles
 update-version: */Dockerfile*
 	@sed -i "0,/^ENV\ \VERSION .*$$/{s//ENV VERSION = \"$$VERSION\"/}" */Dockerfile*
 	@echo updated to version "`cat VERSION`" Dockerfiles

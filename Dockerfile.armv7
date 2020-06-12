@@ -1,7 +1,7 @@
-ARG BASE_IMAGE=jfloff/alpine-python
+ARG BASE_IMAGE=resin/raspberry-pi-alpine-python
 ARG BASE_IMAGE_TAG=3.7-slim
-ARG RUSH_BASE_IMAGE=rustagainshell/rash
-ARG RUSH_BASE_IMAGE_TAG=1.0.0
+ARG RUSH_BASE_IMAGE=sdelrio/rash
+ARG RUSH_BASE_IMAGE_TAG=1.0.0-armv7
 
 #######################################################
 # BUILDER IMAGE
@@ -56,7 +56,7 @@ WORKDIR /usr/local/bin
 
 ENV LISTENPORT 8110
 ENV FREQUENCY 1
-ENV VERSION 0.98
+ENV VERSION 0.99
 
 COPY hs110exporter.py entrypoint.rh ./
 RUN chmod +x entrypoint.rh

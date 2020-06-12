@@ -6,11 +6,8 @@ __pycache__
 .git
 *.yml
 *.yaml
-*.ini
 htmlcov
 img
 run.sh
-test_hs110exporter.py
-tox.ini
 #prometheus
 #grafana

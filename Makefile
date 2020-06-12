@@ -1,16 +1,64 @@
 IMGNAME=sdelrio/hs110-exporter
-VERSION = $(shell grep "ENV VERSION" Dockerfile| awk 'NF>1{print $$NF}')
-TESTIP=192.168.1.53
-.PHONY: all build run
+VERSION = $(shell cat VERSION)
 
-all: build run
+.PHONY: all build-images build-test-images test-images push-images update-version
 
+IMAGE_NAME ?= sdelrio/hs110-exporter
+IMAGE_TAG ?= latest
+IMAGE_TEST_TAG ?= test
+
+VERSION ?= master
+DOCKERFILES ?= $(shell find . -maxdepth 1 -name 'Dockerfile*')
+
+.DEFAULT: help
+help:	## Show this help menu.
+	@echo "Usage: make [TARGET ...]"
+	@echo ""
+	@egrep -h "#[#]" $(MAKEFILE_LIST) | sed -e 's/\\$$//' | awk 'BEGIN {FS = "[:=].*?#[#] "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+
+build-images:	## build images
+build-images:
+	@for DOCKERFILE in $(DOCKERFILES);do \
+		echo "--> Building $(IMAGE_NAME):$(IMAGE_TAG) -> $$DOCKERFILE"; \
+		docker build --progress=plain -f $$DOCKERFILE \
+			-t $(IMAGE_NAME):$(IMAGE_TAG)`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'` \
+			. || exit -1 ;\
+	done; \
+
+build-test-images:	## build images
+build-test-images:
+	@for DOCKERFILE in $(DOCKERFILES);do \
+		echo "--> Building test image $(IMAGE_NAME):$(IMAGE_TEST_TAG)"; \
+		docker build --target=test --progress=plain -f $$DOCKERFILE \
+			-t $(IMAGE_NAME):$(IMAGE_TEST_TAG)`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'` \
+			. || exit -2 ;\
+	done; \
+
+test-images:	## test with docker images
+test-images: build-test-images
+	@for DOCKERFILE in $(DOCKERFILES);do \
+		echo "--> Testing $(IMAGE_NAME):$(IMAGE_TAG)"; \
+		docker run --rm -ti \
+			$(IMAGE_NAME):$(IMAGE_TEST_TAG)`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
+	done;
+
+publish-images:	## publish docker images
+publish-images: build-images
+	@for DOCKERFILE in $(DOCKERFILES);do \
+		echo docker push $(IMAGE_NAME):$(IMAGE_TAG)`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'` ; \
+	done; \
+
+update-version: ## update version from VERSION file in all Cargo.toml manifests
+update-version: */Dockerfile*
+	@sed -i "0,/^ENV\ \VERSION .*$$/{s//ENV VERSION = \"$$VERSION\"/}" */Dockerfile*
+	@echo updated to version "`cat VERSION`" Dockerfiles
+
+build:	## local development build
 build:
-			@docker build -t $(IMGNAME)$(VERSION) --rm . && echo Buildname: $(IMAGENAME):$(VERSION)
-			@docker build -t $(IMGNAME)-arm$(VERSION) --rm -f Dockerfile.arm . && echo Buildname: $(IMAGENAME):$(VERSION)
+	@pip install -r requirements.txt;
+	@pip install tox
 
-run:
-			docker run --rm -ti -p 8110:8110 $(IMGNAME)$(VERSION)
-
-runarm:
-			docker run --rm -ti -p 8110:8110 $(IMGNAME)-arm$(VERSION)
+test: ## Test coverage with tox
+test: 
+	@tox -e coverage,py37

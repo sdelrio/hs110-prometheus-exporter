@@ -1,0 +1,53 @@
+name: Docker CI and image publish
+
+on:
+  push:
+    branches:
+      - master
+
+    tags:
+      - v*
+
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run tests
+        run: |
+          make build-test-images
+
+  push:
+    needs: test
+
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Prepare qemu for armbuilds
+        run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
+      - name: Build image
+        run: make build-images
+
+      - name: Log into registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${{ $DOCKER_USER }} --password-stdin
+
+      - name: Push image
+        run: |
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+
+          # Strip "v" prefix from tag name
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+
+          # Use Docker `latest` tag convention
+          [ "$VERSION" == "master" ] && VERSION=latest
+
+          IMAGE_TAG=$VERSION make publish-images

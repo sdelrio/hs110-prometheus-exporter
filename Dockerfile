@@ -1,5 +1,7 @@
 ARG BASE_IMAGE=jfloff/alpine-python
 ARG BASE_IMAGE_TAG=3.7-slim
+ARG RUSH_BASE_IMAGE=rustagainshell/rash
+ARG RUSH_BASE_IMAGE_TAG=1.0.0
 
 #######################################################
 # BUILDER IMAGE
@@ -16,9 +18,6 @@ RUN pip install --no-cache-dir --install-option="--prefix=/pip_install" -r /tmp/
 #######################################################
 # RASH IMAGE
 #######################################################
-
-ARG RUSH_BASE_IMAGE=rustagainshell/rash
-ARG RUSH_BASE_IMAGE_TAG=1.0.0
 
 FROM $RUSH_BASE_IMAGE:$RUSH_BASE_IMAGE_TAG AS rash
 

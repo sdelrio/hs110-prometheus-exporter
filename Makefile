@@ -50,9 +50,11 @@ publish-images: build-images
 	done; \
 
 update-version: ## update version from VERSION file in all Dockerfiles
-update-version: */Dockerfile*
-	@sed -i "0,/^ENV\ \VERSION .*$$/{s//ENV VERSION = \"$$VERSION\"/}" */Dockerfile*
-	@echo updated to version "`cat VERSION`" Dockerfiles
+update-version:
+	@for DOCKERFILE in $(DOCKERFILES);do \
+		sed -i "0,/^ENV\ \VERSION .*$$/{s//ENV VERSION $(VERSION)/}" $${DOCKERFILE}; \
+	done;
+	@echo updated to version "$(VERSION)" Dockerfiles
 
 build:	## local development build
 build:

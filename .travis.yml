@@ -45,6 +45,7 @@ jobs:
     - # stage name not required, will continue to use `build docker images`
       env:
         - BASE=resin/raspberry-pi-alpine-python
+        - BASE_RASH=sdelrio/rash:1.0.0-armv7
         - TAG=$(grep "ENV VERSION" Dockerfile | awk 'NF>1{print $NF}')
       script:
       - echo $TAG
@@ -52,7 +53,7 @@ jobs:
       - echo "------- ARM BUILD --------"
       - docker run --rm --privileged multiarch/qemu-user-static:register --reset
       # build arm image
-      - docker build --build-arg BASE_IMAGE=$BASE -t sdelrio/hs110-exporter-arm -f Dockerfile .
+      - docker build --build-arg BASE_IMAGE=$BASE -t sdelrio/hs110-exporter-arm  --build-arg RASH_BASE_IMAGE=$BASE_RASH -f Dockerfile .
       - echo "------- FINISH ARM BUILD --------"
       - >
         if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
@@ -69,7 +70,7 @@ jobs:
         - BASE=sdelrio/hs110-exporter
       script:
       # test x86 image
-      - docker run --rm -e "SHOWHELP=true" -ti sdelrio/hs110-exporter
+      - docker run --rm --entrypoint=/bin/sh -ti sdelrio/hs110-exporter /usr/local/bin/hs110exporter.py -h
     - # stage name not required, will continue to use `run container`
       if: branch = master
       env:
@@ -78,5 +79,5 @@ jobs:
       # prepare qemu for arm build
       - docker run --rm --privileged multiarch/qemu-user-static:register --reset
       # test arm image
-      - docker run --rm -e "SHOWHELP=true" -ti sdelrio/hs110-exporter-arm
+      - docker run --rm --entrypoint=/bin/sh -ti sdelrio/hs110-exporter-arm /usr/local/bin/hs110exporter.py -h
 

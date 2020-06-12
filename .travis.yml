@@ -14,14 +14,14 @@ jobs:
         - TAG=3.6
       script:
       # Unittest + code coverage
-      - docker run --rm -v $(pwd):/usr/src -ti $BASE:$TAG bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py36'
+      - docker run --rm --entrypoint='' -v $(pwd):/usr/src -ti $BASE:$TAG bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py36'
     - # stage name not required, will continue to use `test`
       env:
         - BASE=jfloff/alpine-python
         - TAG=3.7
       script:
       # Unittest + code coverage
-      - docker run --rm -v $(pwd):/usr/src -ti $BASE:$TAG bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py37'
+      - docker run --rm --entrypoint='' -v $(pwd):/usr/src -ti $BASE:$TAG bash -c 'cd /usr/src && pip3 install tox && pip3 install -rrequirements.txt && tox -e coverage,py37'
 
     - stage: build docker images
       env:
@@ -70,7 +70,7 @@ jobs:
         - BASE=sdelrio/hs110-exporter
       script:
       # test x86 image
-      - docker run --rm --entrypoint=/bin/sh -ti sdelrio/hs110-exporter /usr/local/bin/hs110exporter.py -h
+      - docker run --rm --entrypoint='' -ti sdelrio/hs110-exporter /usr/local/bin/hs110exporter.py -h
     - # stage name not required, will continue to use `run container`
       if: branch = master
       env:
@@ -79,5 +79,5 @@ jobs:
       # prepare qemu for arm build
       - docker run --rm --privileged multiarch/qemu-user-static:register --reset
       # test arm image
-      - docker run --rm --entrypoint=/bin/sh -ti sdelrio/hs110-exporter-arm /usr/local/bin/hs110exporter.py -h
+      - docker run --rm --entrypoint='' -ti sdelrio/hs110-exporter-arm /usr/local/bin/hs110exporter.py -h
 

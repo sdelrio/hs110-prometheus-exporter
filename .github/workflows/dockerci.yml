@@ -10,6 +10,12 @@ on:
 
   pull_request:
 
+env:
+  COMPOSE_DOCKER_CLI_BUILD: 1
+  DOCKER_BUILDKIT: 1
+  DOCKER_USER: ${{ github.actor }}
+  DOCKER_PASS: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -37,7 +43,7 @@ jobs:
         run: make build-images
 
       - name: Log into registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${{ $DOCKER_USER }} --password-stdin
+        run: echo "${{ $DOCKER_PASS }}" | docker login -u ${{ $DOCKER_USER }} --password-stdin
 
       - name: Push image
         run: |

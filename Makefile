@@ -20,27 +20,43 @@ help:	## Show this help menu.
 build-images:	## build images
 build-images:
 	@for DOCKERFILE in $(DOCKERFILES);do \
-		echo "--> Building $(IMAGE_NAME):$(IMAGE_TAG) -> $$DOCKERFILE"; \
+        export TAG_SUFFIX=`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
+		echo "--> Building $(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX}"; \
 		docker build --progress=plain -f $$DOCKERFILE \
-			-t $(IMAGE_NAME):$(IMAGE_TAG)`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'` \
+			-t $(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX}\
 			. || exit -1 ;\
 	done; \
+
+build-test-image:	## build images
+build-test-image:
+	@echo "--> Building test image $(IMAGE_NAME):$(IMAGE_TEST_TAG)"; \
+	docker build --target=test --progress=plain -f Dockerfile \
+		-t $(IMAGE_NAME):$(IMAGE_TEST_TAG) \
+		. || exit -2 ;\
 
 build-test-images:	## build images
 build-test-images:
 	@for DOCKERFILE in $(DOCKERFILES);do \
-		echo "--> Building test image $(IMAGE_NAME):$(IMAGE_TEST_TAG)"; \
+        export TAG_SUFFIX=`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
+		echo "--> Building test image $(IMAGE_NAME):$(IMAGE_TEST_TAG)$${TAG_SUFFIX}"; \
 		docker build --target=test --progress=plain -f $$DOCKERFILE \
-			-t $(IMAGE_NAME):$(IMAGE_TEST_TAG)`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'` \
+			-t $(IMAGE_NAME):$(IMAGE_TEST_TAG)$${TAG_SUFFIX} \
 			. || exit -2 ;\
 	done; \
+
+test-image:	## test with the Dockerfile image
+test-image: build-test-image
+	@echo "--> Testing $(IMAGE_NAME):$(IMAGE_TAG)"; \
+	docker run --rm -t \
+		$(IMAGE_NAME):$(IMAGE_TEST_TAG); \
 
 test-images:	## test with docker images
 test-images: build-test-images
 	@for DOCKERFILE in $(DOCKERFILES);do \
-		echo "--> Testing $(IMAGE_NAME):$(IMAGE_TAG)"; \
-		docker run --rm -ti \
-			$(IMAGE_NAME):$(IMAGE_TEST_TAG)`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
+        export TAG_SUFFIX=`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
+		echo "--> Testing $(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX}"; \
+		docker run --rm -t \
+			$(IMAGE_NAME):$(IMAGE_TEST_TAG)$${TAG_SUFFIX}; \
 	done;
 
 publish-images:	## publish docker images
@@ -64,3 +80,7 @@ build:
 test: ## Test coverage with tox
 test: 
 	@tox -e coverage,py37
+
+qemu-arm-linux:	## Prepare qemu on linux to run arm 
+qemu-arm-linux:
+	@docker run --rm --privileged multiarch/qemu-user-static:register --reset

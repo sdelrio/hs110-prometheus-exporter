@@ -17,14 +17,6 @@ env:
   DOCKER_PASS: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Run tests
-        run: |
-          make build-test-images
 
   push:
     needs: test

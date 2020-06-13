@@ -65,7 +65,7 @@ publish-images: build-images
 	@for DOCKERFILE in $(DOCKERFILES);do \
         export TAG_SUFFIX=`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
 		echo "--> Publishing $(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX}"; \
-		echo docker push $(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX} ; \
+		docker push $(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX} ; \
 	done; \
 
 publish-images-gh:	## Publish docker images Git Hub packages

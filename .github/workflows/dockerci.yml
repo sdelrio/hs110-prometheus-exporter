@@ -15,7 +15,9 @@ env:
   COMPOSE_INTERACTIVE_NO_CLI: 1  ## fixes the input device is not a TTY on docker compose
   DOCKER_BUILDKIT: 1
   DOCKER_USER: ${{ github.actor }}
-  DOCKER_PASS: ${{ secrets.GITHUB_TOKEN }}
+  DOCKER_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
+  DOCKERHUB_USER: ${{ github.actor }}
+  DOCKERHUB_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
 
 jobs:
   pullrequest:
@@ -26,9 +28,6 @@ jobs:
     steps:
 
       - uses: actions/checkout@v2
-
-      - name: Prepare qemu for armbuilds on docker
-        run: make qemu-arm-linux
 
       - name: Build test image and run tests
         run: make test-image
@@ -51,7 +50,7 @@ jobs:
         run: make build-images
 
       - name: Log into registry
-        run: echo "$DOCKER_PASS" | docker login https://docker.pkg.github.com -u $DOCKER_USER --password-stdin
+        run: echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
 
       - name: Push image
         run: |
@@ -65,3 +64,4 @@ jobs:
           [ "$VERSION" == "master" ] && VERSION=latest
 
           IMAGE_TAG=$VERSION make publish-images
+

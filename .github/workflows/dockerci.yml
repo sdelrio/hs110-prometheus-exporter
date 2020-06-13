@@ -35,6 +35,9 @@ jobs:
       - name: Test Log into registry
         run: echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
 
+      - name: Test Prepare qemu for armbuilds on docker
+        run: make qemu-arm-linux
+
       - name: TestPush image
         run: |
           # Strip git ref prefix from version

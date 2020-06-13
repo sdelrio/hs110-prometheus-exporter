@@ -32,6 +32,22 @@ jobs:
       - name: Build test image and run tests
         run: make test-image
 
+      - name: Test Log into registry
+        run: echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
+
+      - name: TestPush image
+        run: |
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+
+          # Strip "v" prefix from tag name
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+
+          # Use Docker `latest` tag convention
+          [ "$VERSION" == "master" ] && VERSION=latest
+
+          IMAGE_TAG=$VERSION make publish-images
+
   push:
     runs-on: ubuntu-latest
 

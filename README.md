@@ -1,3 +1,5 @@
+![Docker CI and image publish](https://github.com/sdelrio/hs110-prometheus-exporter/workflows/Docker%20CI%20and%20image%20publish/badge.svg)
+
 # TP-Link HS110 prometheus exporter
 
 The script will get values from the IP where HS110 is configured and export on port default 8110 for prometheus metrics.

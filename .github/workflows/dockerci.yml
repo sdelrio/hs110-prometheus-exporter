@@ -16,7 +16,7 @@ jobs:
     env:
       COMPOSE_DOCKER_CLI_BUILD: 0
       COMPOSE_INTERACTIVE_NO_CLI: 1  ## fixes the input device is not a TTY on docker compose
-      DOCKER_BUILDKIT: 1
+      DOCKER_BUILDKIT: 0
       DOCKERGPR_USER: ${{ github.actor }}
       DOCKERGPR_PASS: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
@@ -33,11 +33,14 @@ jobs:
       - name: Build test image and run tests with GPR cache
         run: make test-image-gpr
 
+      - name: Build all images using GPR cache layer
+        run: make build-images-gpr
+
   push:
     env:
       COMPOSE_DOCKER_CLI_BUILD: 1
       COMPOSE_INTERACTIVE_NO_CLI: 1  ## fixes the input device is not a TTY on docker compose
-      DOCKER_BUILDKIT: 1
+      DOCKER_BUILDKIT: 0
       DOCKERGPR_USER: ${{ github.actor }}
       DOCKERGPR_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
       DOCKERHUB_USER: ${{ github.actor }}
@@ -53,10 +56,10 @@ jobs:
         run: make qemu-arm-linux
 
       - name: Build test image and run tests
-        run: make test-image
+        run: make test-image-gpr
 
-      - name: Build all images
-        run: make build-images
+      - name: Build all images using GPR cache layer
+        run: make build-images-gpr
 
       - name: Log into registry
         run: echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin

@@ -42,7 +42,7 @@ build-images-gpr:
 			--cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)-$${TAG_SUFFIX} \
 			. || exit -1 ;\
 		echo "----> build finished" ; \
-		docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)-$${TAG_SUFFIX} || true
+		docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)-$${TAG_SUFFIX} || true ; \
 		echo "----> cache push finished" ; \
 	done; \
 

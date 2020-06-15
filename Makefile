@@ -42,7 +42,7 @@ build-test-image-gpr:
 	docker pull $(IMAGE_PREFIX)/$(GITHUB_REPOSITORY)/$(GPR_TEST_TAG) || true ; \
 	echo "----> pull finished" ; \
 	docker build -t thing --cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG) \
-		--target=test --progress=plain -f Dockerfile . ; \
+		--target=test --progress=plain -f Dockerfile . || exit -2; \
 	echo "----> build finished" ; \
 	docker tag thing $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG) ; \
 	echo "----> tag finished" ; \

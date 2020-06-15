@@ -46,7 +46,7 @@ build-test-image-gpr:
 	echo "----> build finished" ; \
 	docker tag thing $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG) ; \
 	echo "----> tag finished" ; \
-	docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG)-cache-no-buildkit || true
+	docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG) || true
 
 build-test-images:	## Build all images and to run tests
 build-test-images:
@@ -66,9 +66,9 @@ test-image: build-test-image
 
 test-image-gpr:	## Tests with the Dockerfile image
 test-image-gpr: build-test-image-gpr
-	@echo "--> Testing $(IMAGE_NAME):$(IMAGE_TAG)"; \
+	@echo "--> Testing $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG)"; \
 	docker run --rm -t \
-		$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/build-cache-nobuildkit
+		$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG)
 
 test-images:	## Tests with all docker images
 test-images: build-test-images

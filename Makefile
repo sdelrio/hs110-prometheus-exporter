@@ -41,7 +41,7 @@ build-test-image-gpr:
 	docker pull $(IMAGE_PREFIX)/$(GITHUB_REPOSITORY)/build-cache-no-buildkit || true ; \
 	docker build --target=test --progress=plain  -f Dockerfile \
 		--cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/build-cache-nobuildkit
-		-t $(IMAGE_PREFIX)/$(IMAGE_NAME):$(IMAGE_TEST_TAG) \
+		-t $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/build-cache-nobuildkit \
 		. || exit -2 ;\
 	docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/build-cache-no-buildkit || true
 
@@ -60,6 +60,12 @@ test-image: build-test-image
 	@echo "--> Testing $(IMAGE_NAME):$(IMAGE_TAG)"; \
 	docker run --rm -t \
 		$(IMAGE_NAME):$(IMAGE_TEST_TAG); \
+
+test-image-gpr:	## Tests with the Dockerfile image
+test-image-gpr: build-test-image-gpr
+	@echo "--> Testing $(IMAGE_NAME):$(IMAGE_TAG)"; \
+	docker run --rm -t \
+		$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/build-cache-nobuildkit
 
 test-images:	## Tests with all docker images
 test-images: build-test-images

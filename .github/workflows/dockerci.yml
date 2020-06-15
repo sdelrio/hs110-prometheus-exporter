@@ -16,7 +16,7 @@ jobs:
     env:
       COMPOSE_DOCKER_CLI_BUILD: 0
       COMPOSE_INTERACTIVE_NO_CLI: 1  ## fixes the input device is not a TTY on docker compose
-      DOCKER_BUILDKIT: 0
+      DOCKER_BUILDKIT: 1
       DOCKERGPR_USER: ${{ github.actor }}
       DOCKERGPR_PASS: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
@@ -40,7 +40,7 @@ jobs:
     env:
       COMPOSE_DOCKER_CLI_BUILD: 1
       COMPOSE_INTERACTIVE_NO_CLI: 1  ## fixes the input device is not a TTY on docker compose
-      DOCKER_BUILDKIT: 0
+      DOCKER_BUILDKIT: 1
       DOCKERGPR_USER: ${{ github.actor }}
       DOCKERGPR_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
       DOCKERHUB_USER: ${{ github.actor }}

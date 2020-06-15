@@ -6,6 +6,7 @@ IMAGE_NAME ?= sdelrio/hs110-exporter
 IMAGE_TAG ?= latest
 IMAGE_TEST_TAG ?= test
 IMAGE_PREFIX ?= docker.pkg.github.com
+GPR_TEST_TAG ?= build-cache-no-buildkit
 
 VERSION ?= master
 FILE_VERSION = $(shell cat VERSION)
@@ -37,13 +38,13 @@ build-test-image:
 
 build-test-image-gpr:	## Build 1 image to run testswith Github Package Registry as cache
 build-test-image-gpr:
-	@echo "--> Building test image $(IMAGE_PREFIX)/$(GITHUB_REPOSITORY):$(IMAGE_TEST_TAG)"; \
-	docker pull $(IMAGE_PREFIX)/$(GITHUB_REPOSITORY)/build-cache-no-buildkit || true ; \
+	@echo "--> Building test image $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG)"; \
+	docker pull $(IMAGE_PREFIX)/$(GITHUB_REPOSITORY)/$(GPR_TEST_TAG) || true ; \
 	docker build --target=test --progress=plain  -f Dockerfile \
-		--cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/build-cache-nobuildkit
-		-t $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/build-cache-nobuildkit \
+		--cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG)
+		-t $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG) \
 		. || exit -2 ;\
-	docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/build-cache-no-buildkit || true
+	docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG)-cache-no-buildkit || true
 
 build-test-images:	## Build all images and to run tests
 build-test-images:

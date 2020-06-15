@@ -40,11 +40,12 @@ build-test-image-gpr:	## Build 1 image to run testswith Github Package Registry 
 build-test-image-gpr:
 	@echo "--> Building test image $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG)"; \
 	docker pull $(IMAGE_PREFIX)/$(GITHUB_REPOSITORY)/$(GPR_TEST_TAG) || true ; \
-	docker build --target=test --progress=plain  -f Dockerfile \
-		--cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG)
-		-t thing  \
-		. || exit -2 ; \
+	echo "----> pull finished" ; \
+	docker build -t thing --cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG) \
+		--target=test --progress=plain -f Dockerfile . ; \
+	echo "----> build finished" ; \
 	docker tag thing $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG) ; \
+	echo "----> tag finished" ; \
 	docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG)-cache-no-buildkit || true
 
 build-test-images:	## Build all images and to run tests

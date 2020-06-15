@@ -6,7 +6,7 @@ IMAGE_NAME ?= sdelrio/hs110-exporter
 IMAGE_TAG ?= latest
 IMAGE_TEST_TAG ?= test
 IMAGE_PREFIX ?= docker.pkg.github.com
-GPR_TEST_TAG ?= build-cache-no-buildkit
+GPR_TEST_TAG ?= build-cache-tests-no-buildkit
 GPR_TAG ?= build-cache-no-buildkit
 
 VERSION ?= master
@@ -34,20 +34,20 @@ build-images-gpr:	## Build images with Github Package Registry
 build-images-gpr:
 	@for DOCKERFILE in $(DOCKERFILES);do \
         export TAG_SUFFIX=`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
-		echo "--> Pulling cache image $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)-$${TAG_SUFFIX}"; \
+		echo "--> Pulling cache image $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX}"; \
 		docker pull $(IMAGE_PREFIX)/$(GITHUB_REPOSITORY)/$(GPR_TEST_TAG) || true ; \
 		echo "--> Building $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX}"; \
 		docker build \
 			-t $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(IMAGE_TAG)$${TAG_SUFFIX} \
-			--cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)-$${TAG_SUFFIX} \
+			--cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX} \
 			--progress=plain -f $$DOCKERFILE \
 			. || exit -1 ;\
 		echo "----> Build finished" ; \
-		docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)-$${TAG_SUFFIX} || true ; \
+		docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX} || true ; \
 		echo "----> Cache push finished" ; \
 		docker tag \
-			$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)-$${TAG_SUFFIX} \
-			$(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX} || exit -2 \
+			$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX} \
+			$(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX} || exit 2 \
 		echo "----> Dockerhub tag image finished" ; \
 	done; \
 

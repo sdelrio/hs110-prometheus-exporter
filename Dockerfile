@@ -35,7 +35,7 @@ COPY requirements.txt \
     mypy.ini \
     hs110exporter.py \
     test_hs110exporter.py \
-    .
+    ./
 
 ENTRYPOINT ["tox", "-e", "coverage,py37"]
 

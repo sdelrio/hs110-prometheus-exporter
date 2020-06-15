@@ -10,17 +10,15 @@ on:
 
   pull_request:
 
-env:
-  COMPOSE_DOCKER_CLI_BUILD: 1
-  COMPOSE_INTERACTIVE_NO_CLI: 1  ## fixes the input device is not a TTY on docker compose
-  DOCKER_BUILDKIT: 1
-  DOCKER_USER: ${{ github.actor }}
-  DOCKER_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
-  DOCKERHUB_USER: ${{ github.actor }}
-  DOCKERHUB_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
 
 jobs:
   pullrequest:
+    env:
+      COMPOSE_DOCKER_CLI_BUILD: 0
+      COMPOSE_INTERACTIVE_NO_CLI: 1  ## fixes the input device is not a TTY on docker compose
+      DOCKER_BUILDKIT: 0
+      DOCKERGPR_USER: ${{ github.actor }}
+      DOCKERGPR_PASS: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
 
     if: github.event_name == 'pull_request'
@@ -29,10 +27,21 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - name: Build test image and run tests
-        run: make test-image
+      - name: Log into Github Package Registry
+        run: echo "$DOCKERGPR_PASS" | docker login docker.pkg.github.com -u $DOCKERGPR_USER --password-stdin
+
+      - name: Build test image and run tests with GPR cache
+        run: make test-image-gpr
 
   push:
+    env:
+      COMPOSE_DOCKER_CLI_BUILD: 1
+      COMPOSE_INTERACTIVE_NO_CLI: 1  ## fixes the input device is not a TTY on docker compose
+      DOCKER_BUILDKIT: 1
+      DOCKERGPR_USER: ${{ github.actor }}
+      DOCKERGPR_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
+      DOCKERHUB_USER: ${{ github.actor }}
+      DOCKERHUB_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
     runs-on: ubuntu-latest
 
     if: github.event_name == 'push'

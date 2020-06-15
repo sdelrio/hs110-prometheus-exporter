@@ -18,7 +18,7 @@ jobs:
       COMPOSE_INTERACTIVE_NO_CLI: 1  ## fixes the input device is not a TTY on docker compose
       DOCKER_BUILDKIT: 0
       DOCKERGPR_USER: ${{ github.actor }}
-      DOCKERGPR_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
+      DOCKERGPR_PASS: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
 
     if: github.event_name == 'pull_request'

@@ -36,9 +36,9 @@ build-images-gpr:
         export TAG_SUFFIX=`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
 		echo "--> Pulling cache image $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)-$${TAG_SUFFIX}"; \
 		docker pull $(IMAGE_PREFIX)/$(GITHUB_REPOSITORY)/$(GPR_TEST_TAG) || true ; \
-		echo "--> Building $(IMAGE_NAME):$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX}"; \
+		echo "--> Building $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX}"; \
 		docker build \
-			-t $(IMAGE_NAME):$$GITHUB_REPOSITORY/$(IMAGE_TAG)$${TAG_SUFFIX} \
+			-t $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(IMAGE_TAG)$${TAG_SUFFIX} \
 			--cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)-$${TAG_SUFFIX} \
 			--progress=plain -f $$DOCKERFILE \
 			. || exit -1 ;\

@@ -6,7 +6,7 @@ IMAGE_NAME ?= sdelrio/hs110-exporter
 IMAGE_TAG ?= latest
 IMAGE_TEST_TAG ?= test
 IMAGE_PREFIX ?= docker.pkg.github.com
-GPR_TEST_TAG ?= build-cache-no-buildkit
+GPR_TEST_TAG ?= build-cache-tests-no-buildkit
 GPR_TAG ?= build-cache-no-buildkit
 
 VERSION ?= master
@@ -46,7 +46,7 @@ build-images-gpr:
 		docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)-$${TAG_SUFFIX} || true ; \
 		echo "----> Cache push finished" ; \
 		docker tag \
-			$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)-$${TAG_SUFFIX} \
+			$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX} \
 			$(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX} || exit -2 \
 		echo "----> Dockerhub tag image finished" ; \
 	done; \

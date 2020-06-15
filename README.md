@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/sdelrio/hs110-prometheus-exporter.svg?branch=master)](https://travis-ci.org/sdelrio/hs110-prometheus-exporter)
-
 # TP-Link HS110 prometheus exporter
 
 The script will get values from the IP where HS110 is configured and export on port default 8110 for prometheus metrics.

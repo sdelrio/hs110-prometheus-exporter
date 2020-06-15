@@ -64,7 +64,7 @@ build-test-image-gpr:
 		--cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG) \
 		--target=test --progress=plain -f Dockerfile . || exit -2; \
 	echo "----> build finished" ; \
-	docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG) || true
+	docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TEST_TAG) || true ; \
 	echo "----> cache push finished" ; \
 
 build-test-images:	## Build all images and to run tests

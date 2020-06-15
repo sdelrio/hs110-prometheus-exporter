@@ -35,6 +35,16 @@ build-test-image:
 		-t $(IMAGE_NAME):$(IMAGE_TEST_TAG) \
 		. || exit -2 ;\
 
+build-test-image-gpr:	## Build 1 image to run testswith Github Package Registry as cache
+build-test-image-gpr:
+	@echo "--> Building test image $(IMAGE_PREFIX)/$(GITHUB_REPOSITORY):$(IMAGE_TEST_TAG)"; \
+	docker pull $(IMAGE_PREFIX)/$(GITHUB_REPOSITORY)/build-cache-no-buildkit || true ; \
+	docker build --target=test --progress=plain  -f Dockerfile \
+		--cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/build-cache-nobuildkit
+		-t $(IMAGE_PREFIX)/$(IMAGE_NAME):$(IMAGE_TEST_TAG) \
+		. || exit -2 ;\
+	docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/build-cache-no-buildkit || true
+
 build-test-images:	## Build all images and to run tests
 build-test-images:
 	@for DOCKERFILE in $(DOCKERFILES);do \

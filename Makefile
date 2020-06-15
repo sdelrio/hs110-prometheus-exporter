@@ -123,6 +123,7 @@ update-version: ## Update version from VERSION file in all Dockerfiles
 update-version:
 	@for DOCKERFILE in $(DOCKERFILES);do \
 		sed -i "0,/^ENV\ \VERSION .*$$/{s//ENV VERSION $(FILE_VERSION)/}" $${DOCKERFILE}; \
+		sed -i "0,/^VERSION .*$$/{s//VERSION = $(FILE_VERSION)/}" hs110exporter.py; \
 	done;
 	@echo updated to version "$(FILE_VERSION)" Dockerfiles
 

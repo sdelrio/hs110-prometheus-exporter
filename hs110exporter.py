@@ -11,7 +11,7 @@ from typing import Union
 from dpcontracts import require, ensure
 from prometheus_client import start_http_server, Gauge
 
-VERSION = 0.97
+VERSION = 0.98
 SOCKET_RETRY = 100
 
 

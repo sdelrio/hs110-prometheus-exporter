@@ -39,12 +39,19 @@ build-images-gpr:
 		echo "--> Building $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX}"; \
 		docker build \
 			-t $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX} \
+			--target=build
 			--cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX} \
 			--progress=plain -f $$DOCKERFILE \
 			. || exit -1 ;\
-		echo "----> Build finished" ; \
+		echo "----> Builder finished" ; \
 		docker push $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX} || true ; \
 		echo "----> Cache push finished" ; \
+		docker build \
+			-t $(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX} \
+			--cache-from=$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX} \
+			--progress=plain -f $$DOCKERFILE \
+			. || exit -1 ;\
+		echo "----> Run Build finished" ; \
 		docker tag \
 			$(IMAGE_PREFIX)/$$GITHUB_REPOSITORY/$(GPR_TAG)$${TAG_SUFFIX} \
 			$(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX} || exit 2 \

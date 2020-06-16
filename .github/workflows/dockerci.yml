@@ -33,12 +33,6 @@ jobs:
       - name: Build test image and run tests with GPR cache
         run: make test-image-gpr
 
-      - name: Prepare qemu for armbuilds on docker
-        run: make qemu-arm-linux
-
-      - name: Build all images using GPR cache layer
-        run: make build-images-gpr
-
   push:
     env:
       COMPOSE_DOCKER_CLI_BUILD: 0
@@ -55,11 +49,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Prepare qemu for armbuilds on docker
-        run: make qemu-arm-linux
-
       - name: Build test image and run tests
         run: make test-image-gpr
+
+      - name: Prepare qemu for armbuilds on docker
+        run: make qemu-arm-linux
 
       - name: Build all images using GPR cache layer
         run: make build-images-gpr

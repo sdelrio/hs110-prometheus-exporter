@@ -8,7 +8,7 @@ ARG RUSH_BASE_IMAGE_TAG=1.0.0-armv7
 #######################################################
 FROM $BASE_IMAGE:$BASE_IMAGE_TAG as build
 
-RUN apk add --update alpine-sdk
+RUN apk add --no-cache alpine-sdk
 RUN mkdir /pip_install
 WORKDIR /pip_install
 COPY requirements.txt /tmp/requirements.txt

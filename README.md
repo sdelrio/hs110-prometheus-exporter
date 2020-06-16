@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/sdelrio/hs110-prometheus-exporter.svg?branch=master)](https://travis-ci.org/sdelrio/hs110-prometheus-exporter)
+![Docker CI and image publish](https://github.com/sdelrio/hs110-prometheus-exporter/workflows/Docker%20CI%20and%20image%20publish/badge.svg)
 
 # TP-Link HS110 prometheus exporter
 

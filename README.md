@@ -26,7 +26,7 @@ The script will get values from the IP where HS110 is configured and export on p
 ## Execute with docker
 
 ```
-docker run -d  --restart=always -p 8110:8110 -e HS110IP 192.168.1.111 -e FREQUENCY 15 sdelrio/hs110-exporter
+docker run -d  --restart=always -p 8110:8110 -e HS110IP=192.168.1.111 -e FREQUENCY=15 sdelrio/hs110-exporter
 ```
 
 ## Execute with docker-compose

@@ -26,7 +26,7 @@ def valid_ip(ip: str) -> str:
     try:
         socket.inet_pton(socket.AF_INET, ip)
     except socket.error:
-        raise ValueError("Invalid IP Address %s" % ip)
+        raise ValueError("Invalid IP Address %s" % ip) from None
     return ip
 
 
@@ -139,7 +139,7 @@ class HS110data:
         try:
             self.__received_data = json.loads(self.__decrypt(data))
         except Exception:
-            raise ValueError("json.loads decrypt data")
+            raise ValueError("json.loads decrypt data") from None
 
         if "current_ma" in self.__received_data['emeter']['get_realtime']:
             self.__hardware = 'h2'
@@ -167,7 +167,7 @@ class HS110data:
             raise KeyError(
                 'get_data parameter must be one of: ['
                 + ', '.join(self.__received_data["emeter"]["get_realtime"].keys()) + ']'
-            )
+            ) from None
 
     @ensure("Result must be a string", lambda args, result: isinstance(result, str))
     def get_connection_info(self) -> str:

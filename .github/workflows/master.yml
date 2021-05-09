@@ -1,0 +1,37 @@
+name: Master branch
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  push:
+    env:
+      COMPOSE_DOCKER_CLI_BUILD: 0
+      COMPOSE_INTERACTIVE_NO_CLI: 1  ## fixes the input device is not a TTY on docker compose
+      DOCKER_BUILDKIT: 0
+      DOCKERGPR_USER: ${{ github.actor }}
+      DOCKERGPR_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
+      DOCKERHUB_USER: ${{ github.actor }}
+      DOCKERHUB_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build test image and run tests
+        run: make test-image-gpr
+
+      - name: Prepare qemu for armbuilds on docker
+        run: make qemu-arm-linux
+
+      - name: Build all images using GPR cache layer
+        run: make build-images-gpr
+
+      - name: Log into registry
+        run: echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
+
+      - name: Push image
+        run: make publish-images
+

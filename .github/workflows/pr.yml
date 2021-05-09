@@ -1,15 +1,8 @@
-name: Docker CI and image publish
+name: Pull Request CI
 
 on:
-  push:
-    branches:
-      - master
-
-    tags:
-      - v*
 
   pull_request:
-
 
 jobs:
   pullrequest:

@@ -35,3 +35,29 @@ jobs:
       - name: Push image
         run: make publish-images
 
+      - name: Set TAG env
+        run: echo "TAG=$(make get-tag)" >> $GITHUB_ENV
+
+      - name: Trigger new Operation-Resource actions for Deployment
+        run: |
+          commitMsg=$(git log --format=%B -n 1 ${{ github.event.after }} --pretty=oneline --abbrev-commit)
+          branchName="${GITHUB_REF##*/}"
+          echo "commitMsg: $commitMsg"
+          echo "branchName: $branchName"
+          curl \
+          -X POST \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: Bearer ${{ secrets.OPERATION_RESOURCE_REPOSITORY_ACCESS_TOKEN }}"
+          https://api.github.com/repos/sdelrio/gitops-hs110/dispatches \
+          --data \
+          '
+          {
+            "event_type": "product",
+            "client_payload": {
+              "action": "distribute",
+              "commitmsg": "'"$commitMsg"'",
+              "dirName": "hs110-exporter",
+              "newTag": "'"$TAG"'",
+              "baseRef":"'"$branchName"'"
+            }
+          }'

@@ -21,6 +21,9 @@ help:	## Show this help menu.
 	@egrep -h "#[#]" $(MAKEFILE_LIST) | sed -e 's/\\$$//' | awk 'BEGIN {FS = "[:=].*?#[#] "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 
+get-tag:	## Get tag used in build
+	@echo -n ${IMAGE_TAG}
+
 build-images:	## Build images
 build-images:
 	$(info Make: Building container imags: $(IMAGE_NAME):${IMAGE_TAG})

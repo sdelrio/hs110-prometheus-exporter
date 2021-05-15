@@ -36,13 +36,13 @@ jobs:
         run: make publish-images
 
       - name: Set TAG env
-        run: echo "::set-env name=TAG::$(make get-tag)"
+        run: echo "TAG=$(make get-tag)" >> $GITHUB_ENV
 
       - name: Trigger new Operation-Resource actions for Deployment
         run: |
           commitMsg=$(git log --format=%B -n 1 ${{ github.event.after }} --pretty=oneline --abbrev-commit)
           branchName="${GITHUB_REF##*/}"
-          echo "TAG=$TAG"
+          echo "TAG=${{ env.TAG }}"
           echo "commitMsg: $commitMsg"
           echo "branchName: $branchName"
           curl \
@@ -58,7 +58,7 @@ jobs:
               "action": "distribute",
               "commitmsg": "'"$commitMsg"'",
               "dirName": "hs110-exporter",
-              "newTag": "'"$TAG"'",
+              "newTag": "'"${{ env.TAG }}"'",
               "baseRef":"'"$branchName"'"
             }
           }'

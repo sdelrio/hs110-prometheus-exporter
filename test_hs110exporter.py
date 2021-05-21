@@ -8,7 +8,9 @@ import argparse
 from dpcontracts import PreconditionError
 from hypothesis import given, example
 from hypothesis.strategies import integers, one_of, floats, text, none
-from hs110exporter import valid_ip, HS110data, socket, main, command_line_args, sys
+from hs110exporter import valid_ip, valid_label, HS110data, socket, \
+    main, command_line_args, sys
+# import VERSION
 
 
 class TestValidIP(unittest.TestCase):
@@ -47,6 +49,30 @@ class TestValidIP(unittest.TestCase):
         if (a < 0 or a > 255):
             ip_string = "%s.%s.%s.%s" % (str(a), str(0), str(1), str(2))
             self.assertRaises(ValueError, valid_ip, ip_string)
+
+
+class TestValidLabel(unittest.TestCase):
+    def test_ipstring(self):
+        self.assertEqual(valid_label('mylabel=mykey'), ('mylabel', 'mykey'))
+        self.assertEqual(valid_label(' mylabel=mykey '), ('mylabel', 'mykey'))
+
+    # Type testing
+    @given(none())
+    @example(b'\x00')
+    @example(100)
+    @example(100.1)
+    @example(3j)
+    @example({"string into dict"})
+    @example(set("string into set"))
+    def test_ipstring_types(self, fake_ip_type):
+        self.assertRaises(PreconditionError, valid_label, fake_ip_type)
+
+    def test_ipvalues(self):
+        self.assertRaises(ValueError, valid_label, "192.168.0.254")
+        self.assertRaises(ValueError, valid_label, "#badkey=goodvalue")
+        self.assertRaises(ValueError, valid_label, "#badkey=#badvalue")
+        self.assertRaises(ValueError, valid_label, "goodkey=#badvalue")
+        self.assertRaises(ValueError, valid_label, "goodkey=goodvalue=badtext")
 
 
 class TestHS110data(unittest.TestCase):
@@ -344,6 +370,9 @@ class TestHS110data(unittest.TestCase):
         parser.add_argument(
             "-p", "--port", metavar="<port>", required=False,
             help="Port for listenin", default=8110, type=int)
+        parser.add_argument(
+            "-l", "--label", metavar="<string>", required=False,
+            help="Extra label on metrics", default=('location', 'home'), type=valid_label)
         args = parser.parse_args()
 
         with patch('builtins.print') as mock_print:
@@ -351,10 +380,11 @@ class TestHS110data(unittest.TestCase):
             self.assertRaises(Exception, main, args)
 
             assert mock_print.mock_calls == [
-                call("[info] HS110 connection: 192.168.1.1:9999"),
-                call("[info] Exporter listening on TCP: 8110"),
-                call(("[info] current_ma=0, voltage_mv=0, "
-                      "power_mw=0, total_wh=0, err_code=0"))
+                call('[info] Extra label location="home"'),
+                call('[info] HS110 connection: 192.168.1.1:9999'),
+                call('[info] Exporter listening on TCP: 8110'),
+                call(('[info] current_ma=0, voltage_mv=0, '
+                      'power_mw=0, total_wh=0, err_code=0'))
             ]
 
         mock_connect.assert_called_once()

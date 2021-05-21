@@ -6,7 +6,7 @@ docker_build('tilt.dev/hs110-exporter', '.',
     sync('./hs110exporter.py', '/usr/local/bin/hs110exporter.py'),
     restart_container(),
   ],
-  only=['./hs110exporter.py', './entrypoint.rh', './requirements.txt']
+#  only=['./hs110exporter.py', './entrypoint.rh', './requirements.txt', './tox.ini', '/.pylintrc', './mypy.ini', './test_hs110exporter.py' ]
 )
 # https://docs.tilt.dev/file_changes.html
 
@@ -15,7 +15,7 @@ docker_build('tilt.dev/prometheus', './prometheus',
     sync('./prometheus/prometheus.yml', '/etc/prometheus/prometheus.yml'),
     restart_container(),
   ],
-  only=['./prometheus.yml']
+#  only=['./prometheus.yml']
 )
 
 docker_build('tilt.dev/grafana', './grafana',
@@ -23,6 +23,6 @@ docker_build('tilt.dev/grafana', './grafana',
     sync('./grafana/provisioning/', '/etc/grafana/provisioning/'),
     restart_container(),
   ],
-  only=['./provisioning/']
+#  only=['./provisioning/']
 )
 

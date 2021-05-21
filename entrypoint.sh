@@ -20,7 +20,11 @@ if [ -z "$LISTENPORT" ]; then
     LISTENPORT=8110
 fi
 
+if [ -z "$LABEL" ]; then
+    LABEL=location=home
+fi
+
 export PYTHONUNBUFFERED=1
 
-python /usr/local/bin/hs110exporter.py -t $HS110IP -f $FREQUENCY -p $LISTENPORT
+exec python /usr/local/bin/hs110exporter.py -t $HS110IP -f $FREQUENCY -p $LISTENPORT -l $LABEL
 

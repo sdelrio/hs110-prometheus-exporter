@@ -6,12 +6,14 @@ import socket
 import argparse
 import json
 import sys
+import re
 
 from typing import Union
 from dpcontracts import require, ensure
 from prometheus_client import start_http_server, Gauge
 
-VERSION = 0.98
+# import VERSION
+VERSION = 0.99
 SOCKET_RETRY = 100
 
 
@@ -28,6 +30,24 @@ def valid_ip(ip: str) -> str:
     except socket.error:
         raise ValueError("Invalid IP Address %s" % ip) from None
     return ip
+
+
+@require("label must be a string", lambda args: isinstance(args.label, str))
+@require("label must not be empty", lambda args: len(args.label) > 0)
+def valid_label(label: str) -> tuple:
+    """ Check type format of label=value """
+
+    label = label.strip()                       # Revove triling spaces
+    regex = re.search('(\w+)=(\w+)', label)     # noqa: W605
+
+    if (regex is None) or \
+            (len(regex.groups()) != 2) or \
+            (regex.start(0) != 0) or \
+            (regex.end(0) != len(label)):
+
+        raise ValueError("Invalid Label %s" % label) from None
+
+    return tuple(regex.groups())
 
 
 class HS110data:
@@ -229,19 +249,30 @@ def main(args: argparse.Namespace) -> None:
 
     # Init object
     hs110 = HS110data(hardware_version='h2', ip=args.target)
+    name = args.label[0]
+    value = args.label[1]
+    print('[info] Extra label %s="%s"' % (name, value))
 
     # Create a metric to track time spent and requests made.
     # Gaugage: it goes up and down, snapshot of state
 
-    request_power = Gauge('hs110_power_watt', 'HS110 Watt measure')
-    request_current = Gauge('hs110_current', 'HS110 Current measure')
-    request_voltage = Gauge('hs110_voltage', 'HS110 Voltage measure')
-    request_total = Gauge('hs110_total', 'HS110 Energy measure')
+    request_power = Gauge('hs110_power_watt', 'HS110 Watt measure', [name])
+    request_current = Gauge('hs110_current', 'HS110 Current measure', [name])
+    request_voltage = Gauge('hs110_voltage', 'HS110 Voltage measure', [name])
+    request_total = Gauge('hs110_total', 'HS110 Energy measure', [name])
 
-    request_power.set_function(lambda: hs110.get_data('power'))  # pragma: no cover
-    request_current.set_function(lambda: hs110.get_data('current'))  # pragma: no cover
-    request_voltage.set_function(lambda: hs110.get_data('voltage'))  # pragma: no cover
-    request_total.set_function(lambda: hs110.get_data('total'))  # pragma: no cover
+    request_power \
+        .labels(value) \
+        .set_function(lambda: hs110.get_data('power'))  # pragma: no cover
+    request_current \
+        .labels(value) \
+        .set_function(lambda: hs110.get_data('current'))  # pragma: no cover
+    request_voltage \
+        .labels(value) \
+        .set_function(lambda: hs110.get_data('voltage'))  # pragma: no cover
+    request_total \
+        .labels(value) \
+        .set_function(lambda: hs110.get_data('total'))  # pragma: no cover
 
     print('[info] %s' % hs110.get_connection_info())
 
@@ -261,7 +292,7 @@ def main(args: argparse.Namespace) -> None:
 def command_line_args() -> argparse.Namespace:
     # Parse commandline arguments
     parser = argparse.ArgumentParser(
-        description="TP-Link Wi-Fi Smart Plug Prometheus exporter v" + str(VERSION)
+        description="TP-Link HS110 Wi-Fi Smart Plug Prometheus exporter v" + str(VERSION)
     )
     parser.add_argument(
         "-t",
@@ -275,6 +306,10 @@ def command_line_args() -> argparse.Namespace:
         "-p",
         "--port", metavar="<port>", required=False,
         help="Port for listenin", default=8110, type=int)
+    parser.add_argument(
+        "-l",
+        "--label", metavar="<string>", required=False,
+        help="Extra label on metrics", default=('location', 'home'), type=valid_label)
     return parser.parse_args()
 
 

@@ -56,7 +56,7 @@ WORKDIR /usr/local/bin
 
 ENV LISTENPORT 8110
 ENV FREQUENCY 1
-ENV VERSION 0.98
+ENV VERSION 0.99
 
 COPY hs110exporter.py entrypoint.rh ./
 RUN chmod +x entrypoint.rh

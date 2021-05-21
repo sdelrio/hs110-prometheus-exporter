@@ -29,6 +29,8 @@
         -t {{ ipaddress }}
         -f {{ env.FREQUENCY | default(value='1') }}
         -p {{ env.LISTENPORT }}
+        -p {{ env.LISTENPORT | default(value='8110') }}
+        -l {{ env.LABEL | default(value="location=home") }}
   # transforms process in pid 1 (similar to `exec` in bash)
     transfer_pid_1: true
 

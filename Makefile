@@ -149,7 +149,7 @@ build:
 
 test: ## Test coverage with tox
 test:
-	@tox -e coverage,py37
+	@tox -e coverage,py3
 
 qemu-arm-linux:	## Prepare qemu on linux to run arm
 qemu-arm-linux:

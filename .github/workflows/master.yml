@@ -36,7 +36,7 @@ jobs:
         run: echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
 
       - name: Push image
-        run: make publish-images
+        run: make build-push
 
       - name: Set TAG env
         run: echo "TAG=$(make get-tag)" >> $GITHUB_ENV

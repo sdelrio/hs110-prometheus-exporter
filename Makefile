@@ -11,6 +11,8 @@ GPR_TAG ?= build-cache-no-buildkit
 GITHUB_REPOSITORY ?= sdelrio/hs110-prometheus-exporter
 
 VERSION ?= master
+BUILDX_VERSION ?= 0.5.1
+PLATFORM ?= linux/amd64,linux/arm/v7,linux/arm64
 FILE_VERSION = $(shell cat VERSION)
 DOCKERFILES ?= $(shell find . -maxdepth 1 -name 'Dockerfile*')
 
@@ -26,15 +28,27 @@ get-tag:	## Get tag used in build
 
 build-images:	## Build images
 build-images:
-	$(info Make: Building container imags: $(IMAGE_NAME):${IMAGE_TAG})
-	@for DOCKERFILE in $(DOCKERFILES);do \
-        export TAG_SUFFIX=`echo $${DOCKERFILE} | sed 's/\.\/Dockerfile//' | tr '.' '-'`; \
-		echo "--> Building $(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX}"; \
-		docker build --progress=plain -f $$DOCKERFILE \
-			-t $(IMAGE_NAME):$(IMAGE_TAG)$${TAG_SUFFIX}\
-			. || exit -1 ;\
-	done; \
+	$(info Make: Building container images: $(IMAGE_NAME):${IMAGE_TAG})
+	docker buildx build \
+		--platform $(PLATFORM) \
+		--progress=plain \
+		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
+		.
 
+# https://collabnix.com/building-arm-based-docker-images-on-docker-desktop-made-possible-using-buildx/
+# https://github.com/marketplace/actions/build-and-push-docker-images
+# https://www.docker.com/blog/multi-arch-build-and-images-the-simple-way/
+build-push:	## Build images and push 
+	$(info Make: Building and push container images: $(IMAGE_NAME):${IMAGE_TAG})
+	docker buildx build \
+		--platform $(PLATFORM) \
+		--progress=plain \
+		--cache-from=$(IMAGE_PREFIX)/$(GITHUB_REPOSITORY)/$(GPR_TAG)$${TAG_SUFFIX} \
+		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
+		--push \
+		.
+
+	
 build-images-gpr:	## Build images with Github Package Registry
 build-images-gpr:
 	@for DOCKERFILE in $(DOCKERFILES);do \
@@ -153,4 +167,22 @@ test:
 
 qemu-arm-linux:	## Prepare qemu on linux to run arm
 qemu-arm-linux:
+	@sudo apt-get install -yqemu binfmt-support qemu-user-static
 	@docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
+buildx:	## Install buildx
+	@mkdir -p ~/.docker/cli-plugins
+	@wget https://github.com/docker/buildx/releases/download/v$(BUILDX_VERSION)/buildx-v$(BUILDX_VERSION).linux-amd64 \
+		-O ~/.docker/cli-plugins/docker-buildx
+	@chmod a+x ~/.docker/cli-plugins/docker-buildx
+
+kaniko:	## Build image with kaniko
+	@echo Kaniko "$(IMAGE_NAME):$(IMAGE_TAG)"
+	docker run \
+	-v "$$HOME"/.docker/config.json:/kaniko/.docker/config.json \
+	-v $(shell pwd):/workspace \
+	gcr.io/kaniko-project/executor:latest \
+	--no-push \
+	--dockerfile /workspace/Dockerfile \
+	--destination "$(IMAGE_NAME):$(IMAGE_TAG)" \
+	--context dir:///workspace/

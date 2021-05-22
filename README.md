@@ -84,9 +84,24 @@ You can get the data exported to prometheus to use into grafana like this:
 
 # Development environment
 
-* Requires [tilt.dev](https://docs.tilt.dev/install.html) to be installed
-* Autoreload and autoupdate container when hs110-exporter.py is updated
+* Tilt
+  * Autoreload and autoupdate container when hs110-exporter.py is updated
+  * [tilt.dev](https://docs.tilt.dev/install.html) to be installed
+* docker-compose (can also do docker-compose up without tilt.dev)
+  * Grafana: <http://localhost:300> (admin/developer)
+  * Prometheus: Time Database for the metrics
+  * hs110sim: HS110 simulator
+  * hs110-exporter: container version from your source code
+)
+
+To startup with Tilt.dev
 
 ```
 tilt up
+```
+
+To startup withh docker-compose (but you will have to do the docker-compose build manually each change)
+
+```
+docker-compose up
 ```

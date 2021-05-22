@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=jfloff/alpine-python
-ARG BASE_IMAGE_TAG=3.7-slim
+ARG BASE_IMAGE_TAG=3.8-slim
 ARG RUSH_BASE_IMAGE=rustagainshell/rash
 ARG RUSH_BASE_IMAGE_TAG=1.0.0
 

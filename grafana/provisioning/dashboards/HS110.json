@@ -273,6 +273,7 @@
       },
       "yaxes": [
         {
+          "$$hashKey": "object:60",
           "decimals": null,
           "format": "watt",
           "label": null,
@@ -282,11 +283,12 @@
           "show": true
         },
         {
+          "$$hashKey": "object:61",
           "format": "volt",
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         }
       ],
@@ -355,6 +357,7 @@
       "type": "stat"
     }
   ],
+  "refresh": "10s",
   "schemaVersion": 27,
   "style": "dark",
   "tags": [],
@@ -369,5 +372,5 @@
   "timezone": "",
   "title": "HS110",
   "uid": "gbv35cYZk",
-  "version": 1
+  "version": 2
 }

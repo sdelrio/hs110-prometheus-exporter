@@ -8,7 +8,9 @@ services:
   hs110sim:
     container_name: hs110sim
     image: tilt.dev/hs110-sim
-    build: ./hs110sim
+    build:
+      context: .
+      dockerfile: Dockerfile.sim
 #    ports:
 #      - 9999:9999
 
@@ -20,6 +22,7 @@ services:
       - HS110IP=hs110sim
       - FREQUENCY=1
       - LISTENPORT=8110
+#      - LABEL=location=home
 #    ports:
 #      - 8110:8110
 

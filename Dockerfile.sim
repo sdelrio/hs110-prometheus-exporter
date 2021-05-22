@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=jfloff/alpine-python
-ARG BASE_IMAGE_TAG=3.7-slim
+ARG BASE_IMAGE_TAG=3.8-slim
 
 #######################################################
 # BUILDER IMAGE
@@ -7,7 +7,9 @@ ARG BASE_IMAGE_TAG=3.7-slim
 FROM $BASE_IMAGE:$BASE_IMAGE_TAG as build
 
 WORKDIR /usr/local/bin
-
+COPY requirements.txt ./
+RUN pip install --no-cache-dir --install-option="--prefix=/root/.local" -r requirements.txt
+COPY hs110exporter.py ./
 COPY hs110sim.py ./
 RUN chmod +x hs110sim.py
 

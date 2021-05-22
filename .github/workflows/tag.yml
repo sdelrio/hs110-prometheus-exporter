@@ -24,14 +24,15 @@ jobs:
       - name: Build test image and run tests
         run: make test-image-gpr
 
-      - name: Prepare qemu for armbuilds on docker
-        run: make qemu-arm-linux
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
 
       - name: Build all images using GPR cache layer
         run: make build-images-gpr
 
       - name: Log into registry
         run: echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
+
 
       - name: Push image
         run: |
@@ -44,5 +45,32 @@ jobs:
           # Use Docker `latest` tag convention
           [ "$VERSION" == "master" ] && VERSION=latest
 
-          IMAGE_TAG=$VERSION make publish-images
+          IMAGE_TAG=$VERSION make build-push
+          echo "TAG=$VERSION" >> $GITHUB_ENV
+
+      - name: Trigger new Operation-Resource actions for Deployment
+        run: |
+          commitMsg=$(git log --format=%B -n 1 ${{ github.event.after }} --pretty=oneline --abbrev-commit)
+          branchName="${GITHUB_REF##*/}"
+          echo "TAG=${{ env.TAG }}"
+          echo "commitMsg: $commitMsg"
+          echo "branchName: $branchName"
+          curl \
+          -X POST \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: Bearer ${{ secrets.OPERATION_RESOURCE_REPOSITORY_ACCESS_TOKEN }}" \
+          https://api.github.com/repos/sdelrio/gitops-hs110/dispatches \
+          --data \
+          '
+          {
+            "event_type": "product",
+            "client_payload": {
+              "action": "distribute",
+              "commitmsg": "'"$commitMsg"'",
+              "dirName": "hs110-exporter",
+              "newTag": "'"${{ env.TAG }}"'",
+              "baseRef":"'"$branchName"'"
+            }
+          }'
+
 

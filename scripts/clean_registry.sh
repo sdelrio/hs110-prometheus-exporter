@@ -28,8 +28,7 @@ curl -s "https://hub.docker.com/v2/repositories/${ORGANIZATION}/${IMAGE}/tags/?p
 -H "Authorization: JWT ${DOCKER_TOKEN}" \
     | jq -r '.results|.[]|.name' | egrep "[0-f]{7}" \
     | tail -n +${KEEP} \
-    | xargs -L1 -I {} \
-    | curl "https://hub.docker.com/v2/repositories/${ORGANIZATION}/${IMAGE}/tags/{}/" \
+    | xargs -L1 -I {} -- curl "https://hub.docker.com/v2/repositories/${ORGANIZATION}/${IMAGE}/tags/{}/" \
         -X DELETE \
-        -H "Authorization: JWT ${DOCKER_TOKEN}"
+        -H "Authorization: JWT ${DOCKER_TOKEN}" 
 

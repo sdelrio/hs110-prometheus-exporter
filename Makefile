@@ -31,7 +31,6 @@ build-images:
 	$(info Make: Building container images: $(IMAGE_NAME):${IMAGE_TAG})
 	docker buildx build \
 		--platform $(PLATFORM) \
-		--target=base \
 		--progress=plain \
 		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
 		.
@@ -43,8 +42,8 @@ build-push:	## Build images and push
 	$(info Make: Building and push container images: $(IMAGE_NAME):${IMAGE_TAG})
 	docker buildx build \
 		--platform $(PLATFORM) \
-		--target=base \
 		--progress=plain \
+		--cache-from=$(IMAGE_PREFIX)/$(GITHUB_REPOSITORY)/$(GPR_TAG)$${TAG_SUFFIX} \
 		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
 		--push \
 		.

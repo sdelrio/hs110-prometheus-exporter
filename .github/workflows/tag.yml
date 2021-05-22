@@ -53,7 +53,7 @@ jobs:
       - name: Trigger new Operation-Resource actions for Deployment
         run: |
           commitMsg=$(git log --format=%B -n 1 ${{ github.event.after }} --pretty=oneline --abbrev-commit)
-          branchName="${GITHUB_REF##*/}"
+          branchName="master"
           echo "TAG=${{ env.TAG }}"
           echo "commitMsg: $commitMsg"
           echo "branchName: $branchName"

@@ -1,5 +1,7 @@
 .coverage
 .hypothesis/
 .tox/
+.vscode/
 __pycache__/
 htmlcov/
+*.swp

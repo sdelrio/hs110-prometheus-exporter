@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if [ "$SHOWHELP" == "true" ]; then
    /usr/local/bin/hs110exporter.py -h

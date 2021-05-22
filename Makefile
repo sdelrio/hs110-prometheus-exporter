@@ -26,6 +26,13 @@ help:	## Show this help menu.
 get-tag:	## Get tag used in build
 	@echo -n ${IMAGE_TAG}
 
+build-image:	## Build image locally
+	$(info Make: Building container image x86_x64: $(IMAGE_NAME):${IMAGE_TAG})
+	docker build \
+		--progress=plain \
+		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
+		.
+
 build-images:	## Build images
 build-images:
 	$(info Make: Building container images: $(IMAGE_NAME):${IMAGE_TAG})

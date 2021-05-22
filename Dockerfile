@@ -37,7 +37,7 @@ COPY requirements.txt \
     test_hs110exporter.py \
     ./
 
-ENTRYPOINT ["tox", "-e", "coverage,py37"]
+ENTRYPOINT ["tox", "-e", "coverage,py3"]
 
 #######################################################
 # RASH IMAGE

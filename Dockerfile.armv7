@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=resin/raspberry-pi-alpine-python
-ARG BASE_IMAGE_TAG=3.8-slim
+ARG BASE_IMAGE_TAG=3.7-slim
 ARG RUSH_BASE_IMAGE=sdelrio/rash
 ARG RUSH_BASE_IMAGE_TAG=1.0.0-armv7
 

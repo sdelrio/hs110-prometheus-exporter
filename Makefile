@@ -14,7 +14,7 @@ VERSION ?= master
 BUILDX_VERSION ?= 0.5.1
 PLATFORM ?= linux/amd64,linux/arm/v7,linux/arm64
 FILE_VERSION = $(shell cat VERSION)
-DOCKERFILES ?= $(shell find . -maxdepth 1 -name 'Dockerfile*')
+DOCKERFILES ?= $(shell find . -maxdepth 1 -name 'Dockerfile')
 
 .DEFAULT: help
 help:	## Show this help menu.
@@ -33,8 +33,8 @@ build-image:	## Build image locally
 		--tag $(IMAGE_NAME):$(IMAGE_TAG) \
 		.
 
-build-images:	## Build images
-build-images:
+build-multiarch:	## Build multi-arch, cache only
+build-multiarch:
 	$(info Make: Building container images: $(IMAGE_NAME):${IMAGE_TAG})
 	docker buildx build \
 		--platform $(PLATFORM) \
@@ -45,7 +45,8 @@ build-images:
 # https://collabnix.com/building-arm-based-docker-images-on-docker-desktop-made-possible-using-buildx/
 # https://github.com/marketplace/actions/build-and-push-docker-images
 # https://www.docker.com/blog/multi-arch-build-and-images-the-simple-way/
-build-push:	## Build images and push 
+
+build-push:	## Build multi-arch image and push to docker the registry
 	$(info Make: Building and push container images: $(IMAGE_NAME):${IMAGE_TAG})
 	docker buildx build \
 		--platform $(PLATFORM) \

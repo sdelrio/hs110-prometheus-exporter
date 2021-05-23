@@ -24,8 +24,12 @@ jobs:
         id: prep
         run: |
           TAG=$(echo "${{ github.ref }}")
+          TAG_VER=$(echo $TAG | sed -e 's,\.[0-9]\+$,,')
           IMAGE="sdelrio/hs110-exporter"
+          echo ::set-output name=image::${IMAGE}
           echo ::set-output name=tagged_image::${IMAGE}:${TAG}
+          echo ::set-output name=version_image::${IMAGE}:${TAG_VER}
+          echo ::set-output name=latest_image::${IMAGE}:latest
           echo ::set-output name=tag::${TAG}
 
       - name: Build test image and run tests
@@ -59,7 +63,7 @@ jobs:
           # Set the desired build target here
           target: run
           push: true
-          tags: ${{ steps.prep.outputs.tagged_image }}
+          tags: ${{ steps.prep.outputs.tagged_image }},${{ steps.prep.outputs.latest_image }},${{ steps.prep.outputs.version_image }}
           cache-from: type=local,src=/tmp/.buildx-cache
           # Note the mode=max here
           # More: https://github.com/moby/buildkit#--export-cache-options

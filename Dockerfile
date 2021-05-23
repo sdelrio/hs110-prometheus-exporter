@@ -79,15 +79,11 @@ ARG GROUP_NAME=app
 COPY --from=build  /usr/local/lib /usr/local/lib
 COPY hs110exporter.py /usr/local/bin/hs110exporter.py
 
-USER $USER_NAME
-
 ENV LISTENPORT 8110
 ENV FREQUENCY 1
 
-
 EXPOSE 8110
 
-USER root
 COPY entrypoint.sh /entrypoint.sh
 USER $USER_NAME
 

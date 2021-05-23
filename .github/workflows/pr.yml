@@ -20,9 +20,26 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - name: Log into Github Package Registry
-        run: echo "$DOCKERGPR_PASS" | docker login docker.pkg.github.com -u $DOCKERGPR_USER --password-stdin
+      # https://medium.com/ai2-blog/python-caching-in-github-actions-e9452698e98d
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
 
-      - name: Build test image and run tests with GPR cache
-        run: make test-image-gpr
+#      - uses: actions/cache@v2
+#        with:
+#          path: ~/.cache/pip
+#          key: ${{ hashFiles('setup.py') }}-${{ hashFiles('requirements-dev.txt') }}-${{ hashFiles('requirements.txt') }}
+
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('requirements-dev.txt') }}-${{ hashFiles('requirements.txt') }}
+
+      - name: Install requirements
+        run: |
+          pip install --upgrade --upgrade-strategy eager -r requirements.txt -r requirements-dev.txt
+
+      - name: Execute lint, tests, coverage
+        run: tox -e coverage,py3
 

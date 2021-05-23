@@ -3,8 +3,7 @@ name: Tag CI
 on:
   push:
     tags:
-      - v*
-
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
 
 jobs:
   push:
@@ -21,6 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Prepare
+        id: prep
+        run: |
+          TAG=$(echo "${{ github.ref }}")
+          IMAGE="sdelrio/hs110-exporter"
+          echo ::set-output name=tagged_image::${IMAGE}:${TAG}
+          echo ::set-output name=tag::${TAG}
+
       - name: Build test image and run tests
         run: make test-image-gpr
 
@@ -30,31 +37,50 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build all images using GPR cache layer
-        run: make build-images-gpr
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          # Key is named differently to avoid collision
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
 
       - name: Log into registry
         run: echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
 
-      - name: Push image
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          builder: ${{ steps.buildx.outputs.name }}
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
+          file: Dockerfile
+          # Set the desired build target here
+          target: run
+          push: true
+          tags: ${{ steps.prep.outputs.tagged_image }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          # Note the mode=max here
+          # More: https://github.com/moby/buildkit#--export-cache-options
+          # And: https://github.com/docker/buildx#--cache-tonametypetypekeyvalue
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
+
+        # This ugly bit is necessary if you don't want your cache to grow forever
+        # till it hits GitHub's limit of 5GB.
+        # Temp fix
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+      - name: Move cache
         run: |
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
-
-          IMAGE_TAG=$VERSION make build-push
-          echo "TAG=$VERSION" >> $GITHUB_ENV
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Trigger new Operation-Resource actions for Deployment
         run: |
           commitMsg=$(git log --format=%B -n 1 ${{ github.event.after }} --pretty=oneline --abbrev-commit)
           branchName="master"
-          echo "TAG=${{ env.TAG }}"
+          echo "TAG=${{ steps.prep.outputs.tagged_image }}"
           echo "commitMsg: $commitMsg"
           echo "branchName: $branchName"
           curl \
@@ -70,7 +96,7 @@ jobs:
               "action": "distribute",
               "commitmsg": "'"$commitMsg"'",
               "dirName": "hs110-exporter",
-              "newTag": "'"${{ env.TAG }}"'",
+              "newTag": "'"${{ steps.prep.outputs.tagged_image }}"'",
               "baseRef":"'"$branchName"'"
             }
           }'

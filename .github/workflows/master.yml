@@ -47,17 +47,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      # - name: Build all images using GPR cache layer
-      #   run: make build-images-gpr
-
       - name: Log into registry
         run: echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
-
-      # - name: Push image
-      #   run: make build-push
-
-      - name: Set TAG env
-        run: echo "TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v2
@@ -90,7 +81,7 @@ jobs:
         run: |
           commitMsg=$(git log --format=%B -n 1 ${{ github.event.after }} --pretty=oneline --abbrev-commit)
           branchName="${GITHUB_REF##*/}"
-          echo "TAG=${{ env.TAG }}"
+          echo "TAG=${{ steps.prep.outputs.tagged_image }}"
           echo "commitMsg: $commitMsg"
           echo "branchName: $branchName"
           curl \

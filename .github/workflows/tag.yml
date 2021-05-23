@@ -23,7 +23,9 @@ jobs:
       - name: Prepare
         id: prep
         run: |
-          TAG=$(echo "${{ github.ref }}")
+          # Remove refs/tags
+          TAG=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # Get vX.Y
           TAG_VER=$(echo $TAG | sed -e 's,\.[0-9]\+$,,')
           IMAGE="sdelrio/hs110-exporter"
           echo ::set-output name=image::${IMAGE}

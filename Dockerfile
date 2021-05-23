@@ -22,13 +22,13 @@ ARG GROUP_NAME=app
 RUN addgroup -S -g $GROUP_ID $GROUP_NAME && \
     adduser -S -G $GROUP_NAME -u $USER_ID $USER_NAME
 
-COPY requirements.alpine .
-RUN cat requirements.alpine | xargs apk add --no-cache
-
 #######################################################
 # BUILDER IMAGE
 #######################################################
 FROM base as build
+
+COPY requirements.alpine .
+RUN cat requirements.alpine | xargs apk add --no-cache
 
 COPY requirements.txt /tmp/requirements.txt
 # Install runtime dependencies iinto /usr/local/lib/python3.x/site-packages

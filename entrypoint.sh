@@ -7,7 +7,7 @@ fi
 
 if [ -z "$HS110IP" ]; then
     echo "Enviroment var 'HS110IP' is required"
-    exit -1
+    exit 1
 fi
 
 HS110IP=$(getent hosts $HS110IP | cut -f1 -d' ')

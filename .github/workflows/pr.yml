@@ -26,11 +26,6 @@ jobs:
         with:
           python-version: 3.8
 
-#      - uses: actions/cache@v2
-#        with:
-#          path: ~/.cache/pip
-#          key: ${{ hashFiles('setup.py') }}-${{ hashFiles('requirements-dev.txt') }}-${{ hashFiles('requirements.txt') }}
-
       - uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}

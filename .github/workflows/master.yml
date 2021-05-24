@@ -28,8 +28,23 @@ jobs:
           echo ::set-output name=tagged_image::${IMAGE}:${TAG}
           echo ::set-output name=tag::${TAG}
 
-      - name: Build test image and run tests
-        run: make test-image-gpr
+      # https://medium.com/ai2-blog/python-caching-in-github-actions-e9452698e98d
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('requirements-dev.txt') }}-${{ hashFiles('requirements.txt') }}
+
+      - name: Install requirements
+        run: |
+          pip install --upgrade --upgrade-strategy eager -r requirements.txt -r requirements-dev.txt
+
+      - name: Execute lint, tests, coverage
+        run: tox -e coverage,py3
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
